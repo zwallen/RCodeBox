@@ -25,7 +25,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## Changelog
 Version 0.1.0 (current)
 * Initial release
-* Basic data styling, transformation, and statistical analysis functions
+* Basic data styling, transformation, statistical analysis, and plotting functions
 
 ---
 **Note:** This package represents a personal toolkit developed for specific analytical needs. While shared publicly, it prioritizes the author's workflows over general usability.
