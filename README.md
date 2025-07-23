@@ -1,10 +1,11 @@
-# RToolBox
+# RCodeBox
 
-A personal collection of convenience functions for styling data displays and outputs, transforming and organizing data, performing statistical analyses, and other commonly performed actions in data science projects.
+A personal collection of R convenience functions for styling data displays and outputs, transforming and organizing data, performing statistical analyses, and other commonly performed actions in data science projects.
 
-The package can be installed using the following syntax:
+The package can be installed from GitHub using the following syntax:
+
 ```r
-devtools::install_github("zwallen/RToolBox")
+devtools::install_github("zwallen/RCodeBox")
 ```
 
 ## Important Disclaimer
