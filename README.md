@@ -1,5 +1,7 @@
 # RCodeBox
 
+![R-CMD-check](https://github.com/zwallen/RCodeBox/actions/workflows/R-CMD-check.yaml/badge.svg)
+
 A personal collection of R convenience functions for styling data displays and outputs, transforming and organizing data, performing statistical analyses, and other commonly performed actions in data science projects.
 
 The package can be installed from GitHub using the following syntax:
