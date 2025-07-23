@@ -1,4 +1,4 @@
-Package: RToolBox
+Package: RCodeBox
 Type: Package
 Title: Custom Utilities for R-Based Data Science Projects
 Version: 0.1.0
@@ -11,7 +11,7 @@ Maintainer: Zachary Wallen <zachary.d.wallen@gmail.com>
 Description: A personal collection of convenience functions for styling data displays
     and outputs, transforming and organizing data, performing statistical analyses, and
     other commonly performed actions in data science projects.
-License: MIT + file LICENSE
+License: file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
