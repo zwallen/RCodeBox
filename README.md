@@ -1,11 +1,13 @@
 # RCodeBox
 
+[![R-CMD-check](https://github.com/zwallen/RCodeBox/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/zwallen/RCodeBox/actions/workflows/R-CMD-check.yaml)
+
 A personal collection of R convenience functions for styling data displays and outputs, transforming and organizing data, performing statistical analyses, and other commonly performed actions in data science projects.
 
 Releases of the package can be installed from GitHub:
 
 ```
-# install.packages("devtools")
+install.packages("devtools")
 devtools::install_github("zwallen/RCodeBox")
 ```
 
@@ -13,7 +15,6 @@ And imported in your R scripts as follows:
 
 ```r
 library(RCodeBox)
-# See function documentation for details
 ```
 
 ## Important Disclaimer
