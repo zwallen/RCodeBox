@@ -1,0 +1,6 @@
+^README.md$
+^.*\.Rproj$
+^\.Rbuildignore$
+^\.git$
+^LICENSE\.md$
+^\.github$
