@@ -1,17 +1,41 @@
 # RCodeBox
 
-Statistical testing, plotting, and export utilities for R.
+A personal collection of R convenience functions for styling data displays and outputs, transforming and organizing data, performing statistical analyses, and other commonly performed actions in data science projects.
 
-## Installation
+Releases of the package can be installed from GitHub:
 
 ```
 # install.packages("devtools")
-devtools::install_github("yourusername/RCodeBox")
+devtools::install_github("zwallen/RCodeBox")
 ```
 
-## Usage
+And imported in your R scripts as follows:
 
 ```r
 library(RCodeBox)
 # See function documentation for details
 ```
+
+## Important Disclaimer
+
+As these are only personal convenience functions wrapping existing functions and packages:
+
+* **Compatibility:** They may or may not work for your purposes as they were designed in response to specific workflows and analyses. They are not meant to be designed for general audience use.
+* **Support:** Limited support is provided - use at your own risk and test thoroughly with your data.
+* **Citation:** Citation of the package is not necessary if you decide to use any of the functions written here (but glad if they were able to help!).
+
+## Issues and Contributing
+
+This is primarily a personal package, but if you encounter bugs or have suggestions:
+* Open an issue on GitHub for bug reports
+* Pull requests are welcome for bug fixes
+* For questions, contact: zachary.d.wallen@gmail.com
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Changelog
+
+Version 0.1.0 (current)
+* Initializing package repository
