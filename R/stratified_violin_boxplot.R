@@ -393,7 +393,8 @@ stratified_violin_boxplot <- function(
         linewidth = 2,
         zeroline = FALSE,
         mirror = TRUE,
-        showgrid = TRUE
+        showgrid = TRUE,
+        gridcolor = "lightgrey"
       ),
       font = list(
         color = "black",
