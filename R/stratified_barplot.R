@@ -76,6 +76,7 @@ stratified_barplot <- function(
       ),
       textposition = "outside",
       textfont = list(size = 50 / (n_groups + 1)),
+      showlegend = FALSE,
       hoverinfo = "skip"
     )
 
