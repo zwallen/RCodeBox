@@ -23,15 +23,16 @@
 #' @export
 #'
 stratified_barplot <- function(
-    data,
-    var,
-    strata,
-    ylab = NULL,
-    xlab = NULL,
-    legendlab = NULL,
-    colors = NULL,
-    test = c("fisher.test", "chisq.test"),
-    alpha = 0.05) {
+  data,
+  var,
+  strata,
+  ylab = NULL,
+  xlab = NULL,
+  legendlab = NULL,
+  colors = NULL,
+  test = c("fisher.test", "chisq.test"),
+  alpha = 0.05
+) {
   if (!requireNamespace("plotly", quietly = TRUE)) {
     stop("Package 'plotly' is required.")
   }
@@ -72,7 +73,9 @@ stratified_barplot <- function(
       ),
       width = 0.75,
       text = paste0(
-        round(colSums(counts) / sum(counts) * 100, 1), "%, N=", colSums(counts)
+        round(colSums(counts) / sum(counts) * 100, 1),
+        "%, N=",
+        colSums(counts)
       ),
       textposition = "outside",
       textfont = list(size = 50 / (n_groups + 1)),
@@ -159,7 +162,7 @@ stratified_barplot <- function(
           )
         ) |>
         add_annotations(
-          x = 0.5,
+          x = 1.5,
           y = y_annot +
             0.01 * (max(percents, na.rm = TRUE) - min(percents, na.rm = TRUE)),
           text = signif_label,
@@ -210,7 +213,14 @@ stratified_barplot <- function(
 
       # Add annotation lines and text if significant
       if (signif_label != "ns") {
+        # Stagger annotation heights
         y_annot <- 100 + (0.1 + 0.06 * (j - 1)) * y_span
+
+        # Calculate where to position annotations
+        tickvals <- c("All cases", n_groups)
+        pos1 <- match(group1, tickvals) - 1 # Zero-based positions used by plotly for categorical axes
+        pos2 <- match(group2, tickvals) - 1
+        x_mid <- (pos1 + pos2) / 2
 
         fig <- fig |>
           add_trace(
@@ -227,8 +237,10 @@ stratified_barplot <- function(
             )
           ) |>
           add_annotations(
-            x = mean(c(idx1, idx2)),
+            x = x_mid,
+            xref = "x",
             y = y_annot + 0.01 * y_span,
+            yref = "y",
             text = signif_label,
             showarrow = FALSE,
             font = list(size = 16, color = "black"),

@@ -20,13 +20,14 @@
 #' @export
 #'
 stratified_violin_boxplot <- function(
-    data,
-    var,
-    strata,
-    ylab = NULL,
-    xlab = NULL,
-    test = c("t.test", "wilcox.test"),
-    alpha = 0.05) {
+  data,
+  var,
+  strata,
+  ylab = NULL,
+  xlab = NULL,
+  test = c("t.test", "wilcox.test"),
+  alpha = 0.05
+) {
   if (!requireNamespace("plotly", quietly = TRUE)) {
     stop("Package 'plotly' is required.")
   }
@@ -286,7 +287,7 @@ stratified_violin_boxplot <- function(
           )
         ) |>
         add_annotations(
-          x = 0.5,
+          x = 1.5,
           y = y_annot + 0.01 * (max(y, na.rm = TRUE) - min(y, na.rm = TRUE)),
           text = signif_label,
           showarrow = FALSE,
@@ -339,12 +340,13 @@ stratified_violin_boxplot <- function(
       if (signif_label != "ns") {
         # Stagger annotation heights
         y_annot <- y_range[2] + (0.01 + 0.06 * (j - 1)) * y_span
+
         fig <- fig |>
           add_trace(
             type = "scatter",
             mode = "lines",
             name = "",
-            x = c(idx1, idx1, idx2, idx2),
+            x = c(idx1, idx1, idx2, idx2) - 1,
             y = c(y_annot - 0.01, y_annot, y_annot, y_annot - 0.01),
             line = list(color = "black", width = 2),
             showlegend = FALSE,
@@ -354,7 +356,7 @@ stratified_violin_boxplot <- function(
             )
           ) |>
           add_annotations(
-            x = mean(c(idx1, idx2)),
+            x = mean(c(idx1, idx2)) - 1,
             y = y_annot + 0.01 * y_span,
             text = signif_label,
             showarrow = FALSE,
