@@ -74,13 +74,14 @@ stratified_barplot <- function(
       width = 0.75,
       text = paste0(
         round(colSums(counts) / sum(counts) * 100, 1),
-        "%, N=",
+        "%\nN=",
         colSums(counts)
       ),
-      textposition = "outside",
-      textfont = list(size = 50 / (n_groups + 1)),
+      textposition = "auto",
+      textfont = list(size = 60 / (n_groups + 1)),
       showlegend = FALSE,
-      hoverinfo = "skip"
+      hoverinfo = "skip",
+      cliponaxis = FALSE
     )
 
   # Create plots for each group
@@ -101,12 +102,13 @@ stratified_barplot <- function(
         width = 0.75,
         text = ifelse(
           counts[, y_i] > 0,
-          paste0(round(percents[, y_i], 1), "%, N=", counts[, y_i]),
+          paste0(round(percents[, y_i], 1), "%\nN=", counts[, y_i]),
           ""
         ),
-        textposition = "outside",
-        textfont = list(size = 50 / (n_groups + 1)),
-        hoverinfo = "skip"
+        textposition = "auto",
+        textfont = list(size = 60 / (n_groups + 1)),
+        hoverinfo = "skip",
+        cliponaxis = FALSE
       )
   }
 
@@ -214,7 +216,7 @@ stratified_barplot <- function(
       # Add annotation lines and text if significant
       if (signif_label != "ns") {
         # Stagger annotation heights
-        y_annot <- 100 + (0.1 + 0.06 * (j - 1)) * y_span
+        y_annot <- 100 + (0.3 + 0.06 * (j - 1)) * y_span
 
         # Calculate where to position annotations
         tickvals <- c("All cases", n_groups)
@@ -267,7 +269,7 @@ stratified_barplot <- function(
         linecolor = "black",
         linewidth = 2,
         zeroline = FALSE,
-        mirror = TRUE,
+        mirror = FALSE,
         showgrid = FALSE
       ),
       yaxis = list(
@@ -280,7 +282,7 @@ stratified_barplot <- function(
         linecolor = "black",
         linewidth = 2,
         zeroline = FALSE,
-        mirror = TRUE,
+        mirror = FALSE,
         showgrid = FALSE
       ),
       font = list(

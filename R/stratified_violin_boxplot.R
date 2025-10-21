@@ -383,7 +383,7 @@ stratified_violin_boxplot <- function(
         linecolor = "black",
         linewidth = 2,
         zeroline = FALSE,
-        mirror = TRUE,
+        mirror = FALSE,
         showgrid = FALSE
       ),
       yaxis = list(
@@ -394,9 +394,8 @@ stratified_violin_boxplot <- function(
         linecolor = "black",
         linewidth = 2,
         zeroline = FALSE,
-        mirror = TRUE,
-        showgrid = TRUE,
-        gridcolor = "lightgrey"
+        mirror = FALSE,
+        showgrid = FALSE
       ),
       font = list(
         color = "black",
