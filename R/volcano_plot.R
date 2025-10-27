@@ -18,14 +18,15 @@
 #' @export
 #'
 volcano_plot <- function(
-    data,
-    var,
-    coef,
-    pvalue,
-    alpha = 0.05,
-    top_n = 5,
-    ylab = "-log10(p-value)",
-    xlab = "Coefficient") {
+  data,
+  var,
+  coef,
+  pvalue,
+  alpha = 0.05,
+  top_n = 5,
+  ylab = "-log10(p-value)",
+  xlab = "Coefficient"
+) {
   if (!requireNamespace("plotly", quietly = TRUE)) {
     stop("Package 'plotly' is required.")
   }
@@ -78,78 +79,82 @@ volcano_plot <- function(
       line = list(color = "black", width = 1)
     ),
     hovertemplate = paste0(
-      var, ": ", data[[var]], "<br>",
+      var,
+      ": ",
+      data[[var]],
+      "<br>",
       "Coef: %{x}<br>",
-      "p-value: ", format(data[[pvalue]], scientific = TRUE, digits = 2)
+      "p-value: ",
+      format(data[[pvalue]], scientific = TRUE, digits = 2)
     ),
     showlegend = FALSE
   )
 
   # Add reference lines at x-axis midpoint and alpha on the y-axis
-  fig <- fig |>
-    layout(
-      shapes = list(
-        list(
-          type = "line",
-          x0 = coef_midpoint,
-          x1 = coef_midpoint,
-          y0 = 0,
-          y1 = 1,
-          xref = "x",
-          yref = "paper",
-          opacity = 0.5,
-          line = list(color = "black", dash = "dash"),
-          layer = "below"
-        ),
-        list(
-          type = "line",
-          x0 = 0,
-          x1 = 1,
-          y0 = -log10(alpha),
-          y1 = -log10(alpha),
-          xref = "paper",
-          yref = "y",
-          opacity = 0.5,
-          line = list(color = "black", dash = "dash"),
-          layer = "below"
-        )
+  fig <- layout(
+    fig,
+    shapes = list(
+      list(
+        type = "line",
+        x0 = coef_midpoint,
+        x1 = coef_midpoint,
+        y0 = 0,
+        y1 = 1,
+        xref = "x",
+        yref = "paper",
+        opacity = 0.5,
+        line = list(color = "black", dash = "dash"),
+        layer = "below"
+      ),
+      list(
+        type = "line",
+        x0 = 0,
+        x1 = 1,
+        y0 = -log10(alpha),
+        y1 = -log10(alpha),
+        xref = "paper",
+        yref = "y",
+        opacity = 0.5,
+        line = list(color = "black", dash = "dash"),
+        layer = "below"
       )
     )
+  )
 
   # Adjust labels and formatting
-  fig <- fig |>
-    layout(
-      title = NULL,
-      margin = list(t = 20),
-      xaxis = list(
-        title = ifelse(!is.null(xlab), xlab, coef),
-        tickmode = "array",
-        ticks = "outside",
-        tickcolor = "black",
-        showline = TRUE,
-        linecolor = "black",
-        linewidth = 2,
-        zeroline = FALSE,
-        mirror = TRUE,
-        showgrid = FALSE
-      ),
-      yaxis = list(
-        title = ifelse(!is.null(ylab), ylab, "Frequency (%)"),
-        ticks = "outside",
-        tickcolor = "black",
-        showline = TRUE,
-        linecolor = "black",
-        linewidth = 2,
-        zeroline = FALSE,
-        mirror = TRUE,
-        showgrid = FALSE
-      ),
-      font = list(
-        color = "black",
-        size = 16
-      ),
-      plot_bgcolor = "white"
-    )
+  fig <- layout(
+    fig,
+    title = NULL,
+    margin = list(t = 20),
+    xaxis = list(
+      title = ifelse(!is.null(xlab), xlab, coef),
+      tickmode = "array",
+      ticks = "outside",
+      tickcolor = "black",
+      showline = TRUE,
+      linecolor = "black",
+      linewidth = 2,
+      zeroline = FALSE,
+      mirror = TRUE,
+      showgrid = FALSE
+    ),
+    yaxis = list(
+      title = ifelse(!is.null(ylab), ylab, "Frequency (%)"),
+      ticks = "outside",
+      tickcolor = "black",
+      showline = TRUE,
+      linecolor = "black",
+      linewidth = 2,
+      zeroline = FALSE,
+      mirror = TRUE,
+      showgrid = FALSE
+    ),
+    font = list(
+      color = "black",
+      size = 16
+    ),
+    plot_bgcolor = "white"
+  )
 
   return(fig)
 }

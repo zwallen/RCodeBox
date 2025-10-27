@@ -61,55 +61,55 @@ stratified_barplot <- function(
   fig <- plot_ly()
 
   # Add an "all cases" bar
-  fig <- fig |>
-    add_trace(
-      type = "bar",
-      x = "All cases",
-      y = colSums(counts) / sum(counts) * 100,
-      name = "All",
-      marker = list(
-        color = col_vec,
-        line = list(color = "black", width = 2)
-      ),
-      width = 0.75,
-      text = paste0(
-        round(colSums(counts) / sum(counts) * 100, 1),
-        "%\nN=",
-        colSums(counts)
-      ),
-      textposition = "auto",
-      textfont = list(size = 60 / (n_groups + 1)),
-      showlegend = FALSE,
-      hoverinfo = "skip",
-      cliponaxis = FALSE
-    )
+  fig <- add_trace(
+    fig,
+    type = "bar",
+    x = "All cases",
+    y = colSums(counts) / sum(counts) * 100,
+    name = "All",
+    marker = list(
+      color = col_vec,
+      line = list(color = "black", width = 2)
+    ),
+    width = 0.75,
+    text = paste0(
+      round(colSums(counts) / sum(counts) * 100, 1),
+      "%\nN=",
+      colSums(counts)
+    ),
+    textposition = "auto",
+    textfont = list(size = 60 / (n_groups + 1)),
+    showlegend = FALSE,
+    hoverinfo = "skip",
+    cliponaxis = FALSE
+  )
 
   # Create plots for each group
   for (i in seq_along(colnames(counts))) {
     y_i <- colnames(counts)[i]
 
     # Add bar plot
-    fig <- fig |>
-      add_trace(
-        type = "bar",
-        x = rownames(counts),
-        y = percents[, y_i],
-        name = y_i,
-        marker = list(
-          color = col_vec[i],
-          line = list(color = "black", width = 2)
-        ),
-        width = 0.75,
-        text = ifelse(
-          counts[, y_i] > 0,
-          paste0(round(percents[, y_i], 1), "%\nN=", counts[, y_i]),
-          ""
-        ),
-        textposition = "auto",
-        textfont = list(size = 60 / (n_groups + 1)),
-        hoverinfo = "skip",
-        cliponaxis = FALSE
-      )
+    fig <- add_trace(
+      fig,
+      type = "bar",
+      x = rownames(counts),
+      y = percents[, y_i],
+      name = y_i,
+      marker = list(
+        color = col_vec[i],
+        line = list(color = "black", width = 2)
+      ),
+      width = 0.75,
+      text = ifelse(
+        counts[, y_i] > 0,
+        paste0(round(percents[, y_i], 1), "%\nN=", counts[, y_i]),
+        ""
+      ),
+      textposition = "auto",
+      textfont = list(size = 60 / (n_groups + 1)),
+      hoverinfo = "skip",
+      cliponaxis = FALSE
+    )
   }
 
   # Statistical testing and annotation
@@ -149,29 +149,31 @@ stratified_barplot <- function(
       y_annot <- 100 +
         0.1 * (max(percents, na.rm = TRUE) - min(percents, na.rm = TRUE))
 
-      fig <- fig |>
-        add_trace(
-          type = "scatter",
-          mode = "lines",
-          name = "",
-          x = c(group1, group1, group2, group2),
-          y = c(y_annot - 0.01, y_annot, y_annot, y_annot - 0.01),
-          line = list(color = "black", width = 2),
-          showlegend = FALSE,
-          hovertemplate = paste0(
-            "p=",
-            format(pval, scientific = TRUE, digits = 2)
-          )
-        ) |>
-        add_annotations(
-          x = 1.5,
-          y = y_annot +
-            0.01 * (max(percents, na.rm = TRUE) - min(percents, na.rm = TRUE)),
-          text = signif_label,
-          showarrow = FALSE,
-          font = list(size = 16, color = "black"),
-          align = "center"
+      fig <- add_trace(
+        fig,
+        type = "scatter",
+        mode = "lines",
+        name = "",
+        x = c(group1, group1, group2, group2),
+        y = c(y_annot - 0.01, y_annot, y_annot, y_annot - 0.01),
+        line = list(color = "black", width = 2),
+        showlegend = FALSE,
+        hovertemplate = paste0(
+          "p=",
+          format(pval, scientific = TRUE, digits = 2)
         )
+      )
+
+      fig <- add_annotations(
+        fig,
+        x = 1.5,
+        y = y_annot +
+          0.01 * (max(percents, na.rm = TRUE) - min(percents, na.rm = TRUE)),
+        text = signif_label,
+        showarrow = FALSE,
+        font = list(size = 16, color = "black"),
+        align = "center"
+      )
     }
   } else if (n_groups > 2) {
     # Get combination of groups and number of comparisons
@@ -224,76 +226,78 @@ stratified_barplot <- function(
         pos2 <- match(group2, tickvals) - 1
         x_mid <- (pos1 + pos2) / 2
 
-        fig <- fig |>
-          add_trace(
-            type = "scatter",
-            mode = "lines",
-            name = "",
-            x = c(group1, group1, group2, group2),
-            y = c(y_annot - 0.01, y_annot, y_annot, y_annot - 0.01),
-            line = list(color = "black", width = 2),
-            showlegend = FALSE,
-            hovertemplate = paste0(
-              "p=",
-              format(pval, scientific = TRUE, digits = 2)
-            )
-          ) |>
-          add_annotations(
-            x = x_mid,
-            xref = "x",
-            y = y_annot + 0.01 * y_span,
-            yref = "y",
-            text = signif_label,
-            showarrow = FALSE,
-            font = list(size = 16, color = "black"),
-            align = "center"
+        fig <- add_trace(
+          fig,
+          type = "scatter",
+          mode = "lines",
+          name = "",
+          x = c(group1, group1, group2, group2),
+          y = c(y_annot - 0.01, y_annot, y_annot, y_annot - 0.01),
+          line = list(color = "black", width = 2),
+          showlegend = FALSE,
+          hovertemplate = paste0(
+            "p=",
+            format(pval, scientific = TRUE, digits = 2)
           )
+        )
+
+        fig <- add_annotations(
+          fig,
+          x = x_mid,
+          xref = "x",
+          y = y_annot + 0.01 * y_span,
+          yref = "y",
+          text = signif_label,
+          showarrow = FALSE,
+          font = list(size = 16, color = "black"),
+          align = "center"
+        )
       }
     }
   }
 
   # Adjust labels and formatting
-  fig <- fig |>
-    layout(
-      barmode = "stack",
-      title = NULL,
-      margin = list(t = 20),
-      xaxis = list(
-        title = ifelse(!is.null(xlab), xlab, strata),
-        tickmode = "array",
-        tickvals = c("All cases", rownames(counts)),
-        ticktext = c("All cases", rownames(counts)),
-        ticks = "outside",
-        tickcolor = "black",
-        showline = TRUE,
-        linecolor = "black",
-        linewidth = 2,
-        zeroline = FALSE,
-        mirror = FALSE,
-        showgrid = FALSE
-      ),
-      yaxis = list(
-        title = ifelse(!is.null(ylab), ylab, "Frequency (%)"),
-        ticks = "outside",
-        tickcolor = "black",
-        tickvals = seq(0, 100, by = 20),
-        ticktext = seq(0, 100, by = 20),
-        showline = TRUE,
-        linecolor = "black",
-        linewidth = 2,
-        zeroline = FALSE,
-        mirror = FALSE,
-        showgrid = FALSE
-      ),
-      font = list(
-        color = "black",
-        size = 16
-      ),
-      plot_bgcolor = "white",
-      legend = list(
-        title = list(text = ifelse(!is.null(legendlab), legendlab, var))
-      )
+  fig <- layout(
+    fig,
+    barmode = "stack",
+    title = NULL,
+    margin = list(t = 20),
+    xaxis = list(
+      title = ifelse(!is.null(xlab), xlab, strata),
+      tickmode = "array",
+      tickvals = c("All cases", rownames(counts)),
+      ticktext = c("All cases", rownames(counts)),
+      ticks = "outside",
+      tickcolor = "black",
+      showline = TRUE,
+      linecolor = "black",
+      linewidth = 2,
+      zeroline = FALSE,
+      mirror = FALSE,
+      showgrid = FALSE
+    ),
+    yaxis = list(
+      title = ifelse(!is.null(ylab), ylab, "Frequency (%)"),
+      ticks = "outside",
+      tickcolor = "black",
+      tickvals = seq(0, 100, by = 20),
+      ticktext = seq(0, 100, by = 20),
+      showline = TRUE,
+      linecolor = "black",
+      linewidth = 2,
+      zeroline = FALSE,
+      mirror = FALSE,
+      showgrid = FALSE
+    ),
+    font = list(
+      color = "black",
+      size = 16
+    ),
+    plot_bgcolor = "white",
+    legend = list(
+      title = list(text = ifelse(!is.null(legendlab), legendlab, var))
     )
+  )
 
   return(fig)
 }

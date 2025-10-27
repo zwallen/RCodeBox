@@ -23,29 +23,38 @@ display_styled_table_w_2_headers <- function(data) {
     col.names = NULL,
     escape = FALSE,
     align = "c"
-  ) |>
-    kableExtra::kable_styling(full_width = TRUE) |>
-    # Make sure no wrapping of text
-    kableExtra::column_spec(
-      1:ncol(html_tbl),
-      extra_css = "white-space:nowrap;"
-    ) |>
-    # Make top two rows bold and have borders
-    kableExtra::row_spec(
-      1,
-      bold = TRUE,
-      extra_css = "border-top:2px solid black;"
-    ) |>
-    kableExtra::row_spec(
-      2,
-      bold = TRUE,
-      extra_css = "border-bottom:2px solid black;"
-    ) |>
-    # Add border to bottom of table
-    kableExtra::row_spec(
-      nrow(html_tbl),
-      extra_css = "border-bottom:2px solid black;"
-    )
+  )
+
+  html_tbl_formatted <- kableExtra::kable_styling(
+    html_tbl_formatted,
+    full_width = TRUE
+  )
+
+  html_tbl_formatted <- kableExtra::column_spec(
+    html_tbl_formatted,
+    1:ncol(html_tbl),
+    extra_css = "white-space:nowrap;"
+  )
+
+  html_tbl_formatted <- kableExtra::row_spec(
+    html_tbl_formatted,
+    1,
+    bold = TRUE,
+    extra_css = "border-top:2px solid black;"
+  )
+
+  html_tbl_formatted <- kableExtra::row_spec(
+    html_tbl_formatted,
+    2,
+    bold = TRUE,
+    extra_css = "border-bottom:2px solid black;"
+  )
+
+  html_tbl_formatted <- kableExtra::row_spec(
+    html_tbl_formatted,
+    nrow(html_tbl),
+    extra_css = "border-bottom:2px solid black;"
+  )
 
   return(html_tbl_formatted)
 }
