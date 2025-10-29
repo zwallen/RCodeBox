@@ -13,6 +13,12 @@ Imports:
     openxlsx,
     kableExtra,
     RColorBrewer,
-    plotly
+    plotly,
+    biomaRt,
+    GenomeInfoDb,
+    GenomicRanges,
+    S4Vectors,
+    SummarizedExperiment,
+    VariantAnnotation
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
