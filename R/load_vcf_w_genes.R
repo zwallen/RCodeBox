@@ -1,7 +1,7 @@
-#' Annotate a VCF with gene names
+#' Load a VCF into R with automatic gene name annotation
 #'
-#' Adds gene names (HGNC symbols) to the INFO field of a VCF by intersecting variant
-#' coordinates with gene intervals downloaded from the Ensembl database.
+#' Imports a VCF into R and adds gene names (HGNC symbols) to the INFO field of a VCF by
+#' intersecting variant coordinates with gene intervals downloaded from the Ensembl database.
 #'
 #' @param vcf_path The path to the input VCF file.
 #' @param output_path The output file path for outputting the annotated VCF file. If
@@ -20,7 +20,7 @@
 #' @importFrom S4Vectors DataFrame
 #' @export
 #'
-annotate_vcf_w_genes <- function(
+load_vcf_w_genes <- function(
   vcf_path,
   output_path = NULL,
   GRCh = NULL,

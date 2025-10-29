@@ -17,6 +17,7 @@ Imports:
     biomaRt,
     GenomeInfoDb,
     GenomicRanges,
+    rtracklayer,
     S4Vectors,
     SummarizedExperiment,
     VariantAnnotation
