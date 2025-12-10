@@ -23,7 +23,8 @@ stratified_violin_boxplot(
 
 \item{ylab}{The title for the y-axis (default is to use name given to \code{var}).}
 
-\item{xlab}{The title for the x-axis (default is to use name given to \code{strata}).}
+\item{xlab}{The title for the x-axis (default is to use name given to
+\code{strata}).}
 
 \item{test}{Which test to use for group comparison: "t.test" or "wilcox.test"
 (default: "t.test").}
@@ -36,6 +37,6 @@ A \code{plotly} figure object.
 \description{
 This function creates a violin-box plot with data points and means/stds for a
 numeric variable grouped by a specified strata variable. It also can test for
-significant differences between groups using a t-test or Wilcoxon rank-sum test,
-annotating significant comparisons in the plot.
+significant differences between groups using a t-test or Wilcoxon rank-sum
+test, annotating significant comparisons in the plot.
 }

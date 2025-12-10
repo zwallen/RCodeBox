@@ -1,8 +1,9 @@
 #' Stratified Linear Regression
 #'
 #' Performs linear regression between a numeric test variable and a categorical
-#' strata variable, stratifying the analysis by each category of the strata variable.
-#' The function compares a category against all others for each category in turn.
+#' strata variable, stratifying the analysis by each category of the strata
+#' variable. The function compares a category against all others for each
+#' category in turn.
 #'
 #' @param var The name of the numerical variable in `data` to be tested.
 #' @param strata The name of the categorical variable in `data` to stratify by.
@@ -37,9 +38,6 @@ linear_reg_by_strata <- function(var, strata, data) {
   # Perform analysis for each level of `strata`
   res <- list()
   for (x in levels(data[[strata]])) {
-    # Create dummy variable
-    x_dummy <- as.integer(data[[strata]] == x)
-
     # Calculate summary statistics
     stats <- paste0(
       round(mean(data[data[[strata]] == x, ][[var]], na.rm = TRUE), 1),
@@ -48,7 +46,7 @@ linear_reg_by_strata <- function(var, strata, data) {
     )
 
     # Perform statistical testing
-    fit <- lm(data[[var]] ~ x_dummy)
+    fit <- lm(data[[var]] ~ as.integer(data[[strata]] == x))
 
     # Get beta coefficient and confidence intervals
     coef <- paste0(
@@ -68,5 +66,5 @@ linear_reg_by_strata <- function(var, strata, data) {
       pvalue = summary(fit)$coefficients[2, 4]
     )
   }
-  return(res)
+  res
 }

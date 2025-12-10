@@ -25,15 +25,17 @@ stratified_barplot(
 
 \item{ylab}{The title for the y-axis (default is to use \verb{Frequency (\%)}).}
 
-\item{xlab}{The title for the x-axis (default is to use name given to \code{strata}).}
+\item{xlab}{The title for the x-axis (default is to use name given to
+\code{strata}).}
 
-\item{legendlab}{The title for the legend (default is to use name given to \code{var}).}
+\item{legendlab}{The title for the legend (default is to use name given to
+\code{var}).}
 
-\item{colors}{A vector of R recognized color strings the length of the number of groups
-in the variable provided to \code{var} (vector).}
+\item{colors}{A vector of R recognized color strings the length of the
+number of groups in the variable provided to \code{var} (vector).}
 
-\item{test}{Which test to use for group comparison: \code{fisher.test} or \code{chisq.test}
-(default: \code{fisher.test}).}
+\item{test}{Which test to use for group comparison: \code{fisher.test} or
+\code{chisq.test} (default: \code{fisher.test}).}
 
 \item{alpha}{P-value threshold for significance (default: 0.05).}
 }
@@ -41,8 +43,8 @@ in the variable provided to \code{var} (vector).}
 A \code{plotly} figure object.
 }
 \description{
-This function creates a bar plot reporting frequencies of a categorical variable
-grouped by a specified strata variable. It can also test for significant differences
-between groups using Fisher's exact test or Chi-squared test, annotating significant
-comparisons in the plot.
+This function creates a bar plot reporting frequencies of a categorical
+variable grouped by a specified strata variable. It can also test for
+significant differences between groups using Fisher's exact test or
+Chi-squared test, annotating significant comparisons in the plot.
 }

@@ -13,5 +13,6 @@ display_styled_table_w_2_headers(data)
 A styled HTML table object with two header rows.
 }
 \description{
-This function takes a data frame and returns a style HTML table with two header rows.
+This function takes a data frame and returns a style HTML table with two
+header rows.
 }

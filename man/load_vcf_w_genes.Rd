@@ -14,20 +14,23 @@ load_vcf_w_genes(
 \arguments{
 \item{vcf_path}{The path to the input VCF file.}
 
-\item{output_path}{The output file path for outputting the annotated VCF file. If
-NULL (default), the funtion outputs an annotated \code{VariantAnnotation::VCF} object.}
+\item{output_path}{The output file path for outputting the annotated VCF
+file. If NULL (default), the funtion outputs an annotated
+\code{VariantAnnotation::VCF} object.}
 
-\item{GRCh}{The GRCh version of the VCF genomic positions. Currently this can only be
-set to \code{37} (default is NULL, i.e., use current GRCh38 build).}
+\item{GRCh}{The GRCh version of the VCF genomic positions. Currently this
+can only be set to \code{37} (default is NULL, i.e., use current GRCh38 build).}
 
-\item{exclude_antisense}{Whether or not to exclude antisense versions of genes
-(i.e., those with a "-AS1", "-AS2", etc. designation).}
+\item{exclude_antisense}{Whether or not to exclude antisense versions of
+genes (i.e., those with a "-AS1", "-AS2", etc. designation).}
 }
 \value{
-If \code{output_path} is \code{NULL}, an annotated \code{VariantAnnotation::VCF} object;
-otherwise nothing is returned and annotated VCF is written to \code{output_path}.
+If \code{output_path} is \code{NULL}, an annotated \code{VariantAnnotation::VCF}
+object; otherwise nothing is returned and annotated VCF is written to
+\code{output_path}.
 }
 \description{
-Imports a VCF into R and adds gene names (HGNC symbols) to the INFO field of a VCF by
-intersecting variant coordinates with gene intervals downloaded from the Ensembl database.
+Imports a VCF into R and adds gene names (HGNC symbols) to the INFO field of
+a VCF by intersecting variant coordinates with gene intervals downloaded
+from the Ensembl database.
 }

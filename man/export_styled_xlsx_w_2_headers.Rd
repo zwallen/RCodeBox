@@ -2,12 +2,14 @@
 % Please edit documentation in R/export_styled_xlsx_w_2_headers.R
 \name{export_styled_xlsx_w_2_headers}
 \alias{export_styled_xlsx_w_2_headers}
-\title{Export a data frame to a styled Excel file with two header rows (major and sub-header).}
+\title{Export a data frame to a styled Excel file with two header rows
+(major and sub-header).}
 \usage{
 export_styled_xlsx_w_2_headers(data, ws_title, filename)
 }
 \arguments{
-\item{data}{The data frame to export. The first two rows should be header and sub-header.}
+\item{data}{The data frame to export. The first two rows should be header
+and sub-header.}
 
 \item{ws_title}{The worksheet title.}
 
@@ -17,5 +19,6 @@ export_styled_xlsx_w_2_headers(data, ws_title, filename)
 None. Writes a styled Excel file to disk.
 }
 \description{
-Export a data frame to a styled Excel file with two header rows (major and sub-header).
+Export a data frame to a styled Excel file with two header rows
+(major and sub-header).
 }

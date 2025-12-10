@@ -1,8 +1,9 @@
 #' Stratified Fisher's Exact Test
 #'
-#' Performs Fisher's exact test between a categorical test variable and a categorical
-#' strata variable, stratifying the analysis by each category of the strata variable.
-#' The function compares a category against all others for each category in turn.
+#' Performs Fisher's exact test between a categorical test variable and a
+#' categorical strata variable, stratifying the analysis by each category of
+#' the strata variable. The function compares a category against all others for
+#' each category in turn.
 #'
 #' @param var The name of the categorical variable in `data` to be tested.
 #' @param strata The name of the categorical variable in `data` to stratify by.
@@ -78,5 +79,5 @@ fisher_exact_by_strata <- function(var, strata, data) {
       )
     }
   }
-  return(res)
+  res
 }

@@ -1,6 +1,7 @@
 #' Display a Styled HTML Table with Two Headers
 #'
-#' This function takes a data frame and returns a style HTML table with two header rows.
+#' This function takes a data frame and returns a style HTML table with two
+#' header rows.
 #'
 #' @param data A data frame to be displayed in the styled HTML table.
 #' @return A styled HTML table object with two header rows.
@@ -32,7 +33,7 @@ display_styled_table_w_2_headers <- function(data) {
 
   html_tbl_formatted <- kableExtra::column_spec(
     html_tbl_formatted,
-    1:ncol(html_tbl),
+    seq_len(ncol(html_tbl)),
     extra_css = "white-space:nowrap;"
   )
 
@@ -56,5 +57,5 @@ display_styled_table_w_2_headers <- function(data) {
     extra_css = "border-bottom:2px solid black;"
   )
 
-  return(html_tbl_formatted)
+  html_tbl_formatted
 }

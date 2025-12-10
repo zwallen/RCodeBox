@@ -1,20 +1,22 @@
 #' Plot a Stratified Barplot Using Plotly
 #'
-#' This function creates a bar plot reporting frequencies of a categorical variable
-#' grouped by a specified strata variable. It can also test for significant differences
-#' between groups using Fisher's exact test or Chi-squared test, annotating significant
-#' comparisons in the plot.
+#' This function creates a bar plot reporting frequencies of a categorical
+#' variable grouped by a specified strata variable. It can also test for
+#' significant differences between groups using Fisher's exact test or
+#' Chi-squared test, annotating significant comparisons in the plot.
 #'
 #' @param data The data frame containing the variables of interest.
 #' @param var The name of the categorical variable in `data` to be plotted.
 #' @param strata The name of the categorical variable in `data` to group by.
 #' @param ylab The title for the y-axis (default is to use `Frequency (%)`).
-#' @param xlab The title for the x-axis (default is to use name given to `strata`).
-#' @param legendlab The title for the legend (default is to use name given to `var`).
-#' @param colors A vector of R recognized color strings the length of the number of groups
-#' in the variable provided to `var` (vector).
-#' @param test Which test to use for group comparison: `fisher.test` or `chisq.test`
-#' (default: `fisher.test`).
+#' @param xlab The title for the x-axis (default is to use name given to
+#' `strata`).
+#' @param legendlab The title for the legend (default is to use name given to
+#' `var`).
+#' @param colors A vector of R recognized color strings the length of the
+#' number of groups in the variable provided to `var` (vector).
+#' @param test Which test to use for group comparison: `fisher.test` or
+#' `chisq.test` (default: `fisher.test`).
 #' @param alpha P-value threshold for significance (default: 0.05).
 #' @return A `plotly` figure object.
 #' @import plotly
@@ -48,7 +50,7 @@ stratified_barplot <- function(
 
   # Define color vector for plotting
   if (!is.null(colors)) {
-    col_vec <- colors[1:length(unique(y))]
+    col_vec <- colors[seq_along((unique(y)))]
   } else {
     col_vec <- RColorBrewer::brewer.pal(length(unique(y)), "Greys")
   }
@@ -122,10 +124,8 @@ stratified_barplot <- function(
     # Perform testing with requested test
     if (test == "fisher.test") {
       pval <- tryCatch(fisher.test(tbl)$p.value, error = function(e) NA)
-      test_name <- "Fisher's exact"
     } else {
       pval <- tryCatch(chisq.test(tbl)$p.value, error = function(e) NA)
-      test_name <- "Chi-squared"
     }
 
     # Generate significance label for significant associations
@@ -145,7 +145,6 @@ stratified_barplot <- function(
 
     # Add annotation lines and text if significant
     if (signif_label != "ns") {
-      y_max <- max(rowSums(percents), na.rm = TRUE)
       y_annot <- 100 +
         0.1 * (max(percents, na.rm = TRUE) - min(percents, na.rm = TRUE))
 
@@ -194,10 +193,8 @@ stratified_barplot <- function(
       # Perform testing with requested test
       if (test == "fisher.test") {
         pval <- tryCatch(fisher.test(tbl)$p.value, error = function(e) NA)
-        test_name <- "Fisher's exact"
       } else {
         pval <- tryCatch(chisq.test(tbl)$p.value, error = function(e) NA)
-        test_name <- "Chi-squared"
       }
 
       # Generate significance label for significant associations
@@ -222,7 +219,7 @@ stratified_barplot <- function(
 
         # Calculate where to position annotations
         tickvals <- c("All cases", n_groups)
-        pos1 <- match(group1, tickvals) - 1 # Zero-based positions used by plotly for categorical axes
+        pos1 <- match(group1, tickvals) - 1
         pos2 <- match(group2, tickvals) - 1
         x_mid <- (pos1 + pos2) / 2
 

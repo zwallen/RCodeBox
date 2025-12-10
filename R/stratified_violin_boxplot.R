@@ -2,14 +2,15 @@
 #'
 #' This function creates a violin-box plot with data points and means/stds for a
 #' numeric variable grouped by a specified strata variable. It also can test for
-#' significant differences between groups using a t-test or Wilcoxon rank-sum test,
-#' annotating significant comparisons in the plot.
+#' significant differences between groups using a t-test or Wilcoxon rank-sum
+#' test, annotating significant comparisons in the plot.
 #'
 #' @param data The data frame containing the variables of interest.
 #' @param var The name of the numerical variable in `data` to be plotted.
 #' @param strata The name of the categorical variable in `data` to group by.
 #' @param ylab The title for the y-axis (default is to use name given to `var`).
-#' @param xlab The title for the x-axis (default is to use name given to `strata`).
+#' @param xlab The title for the x-axis (default is to use name given to
+#' `strata`).
 #' @param test Which test to use for group comparison: "t.test" or "wilcox.test"
 #' (default: "t.test").
 #' @param alpha P-value threshold for significance (default: 0.05).
@@ -249,10 +250,8 @@ stratified_violin_boxplot <- function(
     # Perform testing with requested test
     if (test == "t.test") {
       pval <- tryCatch(t.test(y1, y2)$p.value, error = function(e) NA)
-      test_name <- "t-test"
     } else {
       pval <- tryCatch(wilcox.test(y1, y2)$p.value, error = function(e) NA)
-      test_name <- "Wilcoxon"
     }
 
     # Generate significance label for significant associations
@@ -319,10 +318,8 @@ stratified_violin_boxplot <- function(
       # Perform testing with requested test
       if (test == "t.test") {
         pval <- tryCatch(t.test(y1, y2)$p.value, error = function(e) NA)
-        test_name <- "t-test"
       } else {
         pval <- tryCatch(wilcox.test(y1, y2)$p.value, error = function(e) NA)
-        test_name <- "Wilcoxon"
       }
 
       # Generate significance label for significant associations

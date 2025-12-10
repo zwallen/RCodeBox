@@ -26,7 +26,8 @@ For each level of \code{var}:
 }
 }
 \description{
-Performs Fisher's exact test between a categorical test variable and a categorical
-strata variable, stratifying the analysis by each category of the strata variable.
-The function compares a category against all others for each category in turn.
+Performs Fisher's exact test between a categorical test variable and a
+categorical strata variable, stratifying the analysis by each category of
+the strata variable. The function compares a category against all others for
+each category in turn.
 }

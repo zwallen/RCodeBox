@@ -26,8 +26,8 @@ volcano_plot(
 
 \item{alpha}{Significance threshold (default: 0.05).}
 
-\item{top_n}{Number of most significant associations to show labels for on both
-negative and positive ends (default: 5).}
+\item{top_n}{Number of most significant associations to show labels for on
+both negative and positive ends (default: 5).}
 
 \item{ylab}{Title for y-axis (defaults to "-log10(p-value)").}
 
@@ -37,7 +37,8 @@ negative and positive ends (default: 5).}
 A \code{plotly} figure object.
 }
 \description{
-Creates a volcano plot from a data frame with variable, coefficient, and p-value columns.
-Significant points are colored (red for positive, blue for negative) and non-significant
-points are grey. Significant points are labeled with their variable name.
+Creates a volcano plot from a data frame with variable, coefficient, and
+p-value columns. Significant points are colored (red for positive, blue for
+negative) and non-significant points are grey. Significant points are
+labeled with their variable name.
 }

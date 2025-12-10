@@ -3,7 +3,7 @@
 export(display_styled_table_w_2_headers)
 export(export_styled_xlsx_w_2_headers)
 export(fisher_exact_by_strata)
-export(liftOver_vcf)
+export(liftover_vcf)
 export(linear_reg_by_strata)
 export(load_vcf_w_genes)
 export(stratified_barplot)

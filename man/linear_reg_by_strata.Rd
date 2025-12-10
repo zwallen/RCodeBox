@@ -24,6 +24,7 @@ A named list with each category as a key and the following values:
 }
 \description{
 Performs linear regression between a numeric test variable and a categorical
-strata variable, stratifying the analysis by each category of the strata variable.
-The function compares a category against all others for each category in turn.
+strata variable, stratifying the analysis by each category of the strata
+variable. The function compares a category against all others for each
+category in turn.
 }

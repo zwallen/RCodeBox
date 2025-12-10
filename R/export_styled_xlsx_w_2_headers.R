@@ -1,6 +1,8 @@
-#' Export a data frame to a styled Excel file with two header rows (major and sub-header).
+#' Export a data frame to a styled Excel file with two header rows
+#' (major and sub-header).
 #'
-#' @param data The data frame to export. The first two rows should be header and sub-header.
+#' @param data The data frame to export. The first two rows should be header
+#' and sub-header.
 #' @param ws_title The worksheet title.
 #' @param filename The output .xlsx filename.
 #' @return None. Writes a styled Excel file to disk.
@@ -23,7 +25,7 @@ export_styled_xlsx_w_2_headers <- function(data, ws_title, filename) {
   openxlsx::setColWidths(
     wb,
     ws_title,
-    cols = 1:length(col_widths),
+    cols = seq_along(col_widths),
     widths = col_widths
   )
   align_left <- openxlsx::createStyle(halign = "left", valign = "center")
@@ -39,15 +41,15 @@ export_styled_xlsx_w_2_headers <- function(data, ws_title, filename) {
     wb,
     ws_title,
     align_left,
-    rows = 1:nrow(data),
-    cols = 1:ncol(data),
+    rows = seq_len(nrow(data)),
+    cols = seq_len(ncol(data)),
     gridExpand = TRUE
   )
   openxlsx::addStyle(
     wb,
     ws_title,
     align_center,
-    rows = 1:nrow(data),
+    rows = seq_len(nrow(data)),
     cols = 1,
     gridExpand = TRUE
   )
@@ -56,7 +58,7 @@ export_styled_xlsx_w_2_headers <- function(data, ws_title, filename) {
     ws_title,
     bold,
     rows = 1:2,
-    cols = 1:ncol(data),
+    cols = seq_len(ncol(data)),
     gridExpand = TRUE
   )
   openxlsx::addStyle(
@@ -64,7 +66,7 @@ export_styled_xlsx_w_2_headers <- function(data, ws_title, filename) {
     ws_title,
     border_top,
     rows = 1,
-    cols = 1:ncol(data),
+    cols = seq_len(ncol(data)),
     gridExpand = TRUE,
     stack = TRUE
   )
@@ -73,7 +75,7 @@ export_styled_xlsx_w_2_headers <- function(data, ws_title, filename) {
     ws_title,
     border_bottom,
     rows = 2,
-    cols = 1:ncol(data),
+    cols = seq_len(ncol(data)),
     gridExpand = TRUE,
     stack = TRUE
   )
@@ -82,7 +84,7 @@ export_styled_xlsx_w_2_headers <- function(data, ws_title, filename) {
     ws_title,
     border_bottom,
     rows = nrow(data),
-    cols = 1:ncol(data),
+    cols = seq_len(ncol(data)),
     gridExpand = TRUE,
     stack = TRUE
   )
@@ -100,7 +102,16 @@ export_styled_xlsx_w_2_headers <- function(data, ws_title, filename) {
       ws_title,
       border_thin_top,
       rows = row,
-      cols = 1:ncol(data),
+      cols = seq_len(ncol(data)),
+      gridExpand = TRUE,
+      stack = TRUE
+    )
+    openxlsx::addStyle(
+      wb,
+      ws_title,
+      bold,
+      rows = row,
+      cols = 1,
       gridExpand = TRUE,
       stack = TRUE
     )

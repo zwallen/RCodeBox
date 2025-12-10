@@ -1,16 +1,17 @@
 #' Plot a Volcano Plot Using Plotly
 #'
-#' Creates a volcano plot from a data frame with variable, coefficient, and p-value columns.
-#' Significant points are colored (red for positive, blue for negative) and non-significant
-#' points are grey. Significant points are labeled with their variable name.
+#' Creates a volcano plot from a data frame with variable, coefficient, and
+#' p-value columns. Significant points are colored (red for positive, blue for
+#' negative) and non-significant points are grey. Significant points are
+#' labeled with their variable name.
 #'
 #' @param data Data frame with columns to be plotted.
 #' @param var Name of variable column.
 #' @param coef Name of coefficient column.
 #' @param pvalue Name of p-value column.
 #' @param alpha Significance threshold (default: 0.05).
-#' @param top_n Number of most significant associations to show labels for on both
-#' negative and positive ends (default: 5).
+#' @param top_n Number of most significant associations to show labels for on
+#' both negative and positive ends (default: 5).
 #' @param ylab Title for y-axis (defaults to "-log10(p-value)").
 #' @param xlab Title for x-axis (defaults to "Coefficient").
 #' @return A `plotly` figure object.
