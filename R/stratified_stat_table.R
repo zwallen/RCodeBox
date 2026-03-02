@@ -33,6 +33,7 @@
 #' the variable label, categories, total summary, stratified group summaries, and
 #' regression results (Coefficient and P-value).
 #'
+#' @importFrom stringr str_to_sentence
 #' @importFrom logistf logistf
 #' @importFrom stats lm confint pnorm sd na.omit
 #' @export
@@ -44,6 +45,9 @@ stratified_stat_table = function(
   rename_dict = NULL,
   covariates = NULL
 ) {
+  if (!requireNamespace("stringr", quietly = TRUE)) {
+    stop("Package 'stringr' is required.")
+  }
   if (!requireNamespace("logistf", quietly = TRUE)) {
     stop("Package 'logistf' is required.")
   }
@@ -94,7 +98,7 @@ stratified_stat_table = function(
             ),
             rep("", length(n) - 1)
           ),
-          Categories = names(n),
+          Categories = stringr::str_to_sentence(names(n)),
           Total = n_perc
         )
       )
@@ -108,7 +112,7 @@ stratified_stat_table = function(
         for (group in names(table(df[[groups]]))) {
           group_res = data.frame()
 
-          for (cat in col_res[["Categories"]]) {
+          for (cat in names(table(df[[col]]))) {
             # Create dummy variables
             y = ifelse(df[[col]] == cat, 1, 0)
             x = ifelse(df[[groups]] == group, 1, 0)

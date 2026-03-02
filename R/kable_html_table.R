@@ -62,6 +62,16 @@ kable_html_table = function(df, bold_columns = 1, caption = NULL) {
       column = grep("N=", colnames(df)),
       extra_css = "border-left: 1px solid #000000ff;"
     )
+
+  # Add border to left of column with "Coef" if only one exists
+  if (sum(grepl("Coef \\[", colnames(df))) == 1) {
+    tbl = tbl |>
+      column_spec(
+        column = grep("Coef \\[", colnames(df)),
+        extra_css = "border-left: 1px solid #000000ff;"
+      )
+  }
+
   # For each column, make minimum width the max character length in column and
   # specify font size for remaining values
   for (col in seq_len(ncol(df))) {

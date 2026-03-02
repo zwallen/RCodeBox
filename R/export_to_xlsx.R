@@ -100,6 +100,23 @@ export_to_xlsx = function(df, out_path, sheet, numeric_columns = NULL) {
     stack = TRUE
   )
 
+  # Add border to left of column with "Coef [95%CI]" if only one exists
+  if (sum(grepl("Coef \\[", colnames(df))) == 1) {
+    addStyle(
+      wb,
+      sheet,
+      style = createStyle(
+        border = "left",
+        borderColour = "black",
+        borderStyle = "thin"
+      ),
+      rows = 1:(row_limit + 1),
+      cols = grep("Coef \\[", colnames(df)),
+      gridExpand = TRUE,
+      stack = TRUE
+    )
+  }
+
   # Add thicker border around table and under first row
   addStyle(
     wb,
