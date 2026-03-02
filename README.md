@@ -2,11 +2,11 @@
 
 [![R-CMD-check](https://github.com/zwallen/RCodeBox/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/zwallen/RCodeBox/actions/workflows/R-CMD-check.yaml)
 
-A personal collection of R convenience functions for styling data displays and outputs, transforming and organizing data, performing statistical analyses, and other commonly performed actions in data science projects.
+A personal collection of R functions for commonly performed actions in computational biology and data science projects.
 
 Releases of the package can be installed from GitHub:
 
-```
+```r
 install.packages("devtools")
 devtools::install_github("zwallen/RCodeBox")
 ```

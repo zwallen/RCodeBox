@@ -17,25 +17,23 @@ stratified_barplot(
 )
 }
 \arguments{
-\item{data}{The data frame containing the variables of interest.}
+\item{data}{Dataframe containing the variables of interest.}
 
-\item{var}{The name of the categorical variable in \code{data} to be plotted.}
+\item{var}{Name of the categorical variable in \code{data} to be plotted.}
 
-\item{strata}{The name of the categorical variable in \code{data} to group by.}
+\item{strata}{Name of the categorical variable in \code{data} to group by.}
 
-\item{ylab}{The title for the y-axis (default is to use \verb{Frequency (\%)}).}
+\item{ylab}{Title for the y-axis (default is to use \verb{Frequency (\%)}).}
 
-\item{xlab}{The title for the x-axis (default is to use name given to
-\code{strata}).}
+\item{xlab}{Title for the x-axis (default is to use name given to \code{strata}).}
 
-\item{legendlab}{The title for the legend (default is to use name given to
-\code{var}).}
+\item{legendlab}{Title for the legend (default is to use name given to \code{var}).}
 
-\item{colors}{A vector of R recognized color strings the length of the
-number of groups in the variable provided to \code{var} (vector).}
+\item{colors}{Vector of R recognized color strings the length of the number of groups in
+the variable provided to \code{var} (vector).}
 
-\item{test}{Which test to use for group comparison: \code{fisher.test} or
-\code{chisq.test} (default: \code{fisher.test}).}
+\item{test}{Which test to use for group comparison: \code{fisher.test} or \code{chisq.test}
+(default: \code{fisher.test}).}
 
 \item{alpha}{P-value threshold for significance (default: 0.05).}
 }

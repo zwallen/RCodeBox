@@ -1,20 +1,29 @@
 #' Plot a Stratified Violin-Boxplot Using Plotly
 #'
+#' @description
 #' This function creates a violin-box plot with data points and means/stds for a
 #' numeric variable grouped by a specified strata variable. It also can test for
 #' significant differences between groups using a t-test or Wilcoxon rank-sum
 #' test, annotating significant comparisons in the plot.
 #'
-#' @param data The data frame containing the variables of interest.
-#' @param var The name of the numerical variable in `data` to be plotted.
-#' @param strata The name of the categorical variable in `data` to group by.
-#' @param ylab The title for the y-axis (default is to use name given to `var`).
-#' @param xlab The title for the x-axis (default is to use name given to
-#' `strata`).
-#' @param test Which test to use for group comparison: "t.test" or "wilcox.test"
+#' @param data
+#' Dataframe containing the variables of interest.
+#' @param var
+#' Name of the numerical variable in `data` to be plotted.
+#' @param strata
+#' Name of the categorical variable in `data` to group by.
+#' @param ylab
+#' Title for the y-axis (default is to use name given to `var`).
+#' @param xlab
+#' Title for the x-axis (default is to use name given to `strata`).
+#' @param test
+#' Which test to use for group comparison: "t.test" or "wilcox.test"
 #' (default: "t.test").
-#' @param alpha P-value threshold for significance (default: 0.05).
+#' @param alpha
+#' P-value threshold for significance (default: 0.05).
+#'
 #' @return A `plotly` figure object.
+#'
 #' @import plotly
 #' @importFrom stats runif sd t.test wilcox.test
 #' @importFrom utils combn

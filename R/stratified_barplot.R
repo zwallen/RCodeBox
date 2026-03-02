@@ -1,24 +1,35 @@
 #' Plot a Stratified Barplot Using Plotly
 #'
+#' @description
 #' This function creates a bar plot reporting frequencies of a categorical
 #' variable grouped by a specified strata variable. It can also test for
 #' significant differences between groups using Fisher's exact test or
 #' Chi-squared test, annotating significant comparisons in the plot.
 #'
-#' @param data The data frame containing the variables of interest.
-#' @param var The name of the categorical variable in `data` to be plotted.
-#' @param strata The name of the categorical variable in `data` to group by.
-#' @param ylab The title for the y-axis (default is to use `Frequency (%)`).
-#' @param xlab The title for the x-axis (default is to use name given to
-#' `strata`).
-#' @param legendlab The title for the legend (default is to use name given to
-#' `var`).
-#' @param colors A vector of R recognized color strings the length of the
-#' number of groups in the variable provided to `var` (vector).
-#' @param test Which test to use for group comparison: `fisher.test` or
-#' `chisq.test` (default: `fisher.test`).
-#' @param alpha P-value threshold for significance (default: 0.05).
-#' @return A `plotly` figure object.
+#' @param data
+#' Dataframe containing the variables of interest.
+#' @param var
+#' Name of the categorical variable in `data` to be plotted.
+#' @param strata
+#' Name of the categorical variable in `data` to group by.
+#' @param ylab
+#' Title for the y-axis (default is to use `Frequency (%)`).
+#' @param xlab
+#' Title for the x-axis (default is to use name given to `strata`).
+#' @param legendlab
+#' Title for the legend (default is to use name given to `var`).
+#' @param colors
+#' Vector of R recognized color strings the length of the number of groups in
+#' the variable provided to `var` (vector).
+#' @param test
+#' Which test to use for group comparison: `fisher.test` or `chisq.test`
+#' (default: `fisher.test`).
+#' @param alpha
+#' P-value threshold for significance (default: 0.05).
+#'
+#' @return
+#' A `plotly` figure object.
+#'
 #' @import plotly
 #' @importFrom stats fisher.test chisq.test
 #' @importFrom utils combn

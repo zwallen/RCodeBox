@@ -1,20 +1,26 @@
 #' Load a VCF into R with automatic gene name annotation
 #'
+#' @description
 #' Imports a VCF into R and adds gene names (HGNC symbols) to the INFO field of
 #' a VCF by intersecting variant coordinates with gene intervals downloaded
 #' from the Ensembl database.
 #'
-#' @param vcf_path The path to the input VCF file.
-#' @param output_path The output file path for outputting the annotated VCF
-#' file. If NULL (default), the funtion outputs an annotated
-#' `VariantAnnotation::VCF` object.
-#' @param GRCh The GRCh version of the VCF genomic positions. Currently this
-#' can only be set to `37` (default is NULL, i.e., use current GRCh38 build).
-#' @param exclude_antisense Whether or not to exclude antisense versions of
-#' genes (i.e., those with a "-AS1", "-AS2", etc. designation).
-#' @return If `output_path` is `NULL`, an annotated `VariantAnnotation::VCF`
-#' object; otherwise nothing is returned and annotated VCF is written to
-#' `output_path`.
+#' @param vcf_path
+#' Path to the input VCF file.
+#' @param output_path
+#' Output file path for outputting the annotated VCF file. If NULL (default),
+#' the funtion outputs an annotated `VariantAnnotation::VCF` object.
+#' @param GRCh
+#' GRCh version of the VCF genomic positions. Currently this can only be set
+#' to `37` (default is NULL, i.e., use current GRCh38 build).
+#' @param exclude_antisense
+#' Whether or not to exclude antisense versions of genes (i.e., those with a
+#' "-AS1", "-AS2", etc. designation).
+#'
+#' @return
+#' If `output_path` is `NULL`, an annotated `VariantAnnotation::VCF` object;
+#' otherwise nothing is returned and annotated VCF is written to `output_path`.
+#'
 #' @importFrom VariantAnnotation readVcf writeVcf info header
 #' @importFrom SummarizedExperiment rowRanges
 #' @importFrom biomaRt useEnsembl getBM

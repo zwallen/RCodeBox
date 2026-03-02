@@ -15,16 +15,15 @@ stratified_violin_boxplot(
 )
 }
 \arguments{
-\item{data}{The data frame containing the variables of interest.}
+\item{data}{Dataframe containing the variables of interest.}
 
-\item{var}{The name of the numerical variable in \code{data} to be plotted.}
+\item{var}{Name of the numerical variable in \code{data} to be plotted.}
 
-\item{strata}{The name of the categorical variable in \code{data} to group by.}
+\item{strata}{Name of the categorical variable in \code{data} to group by.}
 
-\item{ylab}{The title for the y-axis (default is to use name given to \code{var}).}
+\item{ylab}{Title for the y-axis (default is to use name given to \code{var}).}
 
-\item{xlab}{The title for the x-axis (default is to use name given to
-\code{strata}).}
+\item{xlab}{Title for the x-axis (default is to use name given to \code{strata}).}
 
 \item{test}{Which test to use for group comparison: "t.test" or "wilcox.test"
 (default: "t.test").}

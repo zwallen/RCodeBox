@@ -1,17 +1,22 @@
 #' Liftover VCF Coordinates from GRCh37 to GRCh38
 #'
+#' @description
 #' This function lifts over variant coordinates in a VCF object using a chain
 #' file.
 #'
-#' @param vcf A `VCF` object (i.e., when reading in VCF via
-#' `VariantAnnotation::readVcf`)
+#' @param vcf
+#' A `VCF` object (i.e., when reading in VCF via `VariantAnnotation::readVcf`)
 #' containing variant data including coordinates.
-#' @param chain_path A character string specifying the file path to the chain
-#' file for conversion.
-#' @return A `VCF` object with updated coordinates. Only variants that
-#' successfully map to a single location are retained.
-#' @note The `seqlevel` of the VCF will be converted to `UCSC` in the mapping
-#' process.
+#' @param chain_path
+#' A character string specifying the file path to the chain file for conversion.
+#'
+#' @return
+#' A `VCF` object with updated coordinates. Only variants that successfully map
+#' to a single location are retained.
+#'
+#' @note
+#' The `seqlevel` of the VCF will be converted to `UCSC` in the mapping process.
+#'
 #' @importFrom rtracklayer import.chain liftOver
 #' @importFrom S4Vectors elementNROWS
 #' @importFrom GenomeInfoDb seqlevelsStyle

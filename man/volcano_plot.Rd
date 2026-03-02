@@ -16,7 +16,7 @@ volcano_plot(
 )
 }
 \arguments{
-\item{data}{Data frame with columns to be plotted.}
+\item{data}{Dataframe with columns to be plotted.}
 
 \item{var}{Name of variable column.}
 
@@ -26,8 +26,8 @@ volcano_plot(
 
 \item{alpha}{Significance threshold (default: 0.05).}
 
-\item{top_n}{Number of most significant associations to show labels for on
-both negative and positive ends (default: 5).}
+\item{top_n}{Number of most significant associations to show labels for on both negative
+and positive ends (default: 5).}
 
 \item{ylab}{Title for y-axis (defaults to "-log10(p-value)").}
 

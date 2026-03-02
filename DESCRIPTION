@@ -3,9 +3,9 @@ Type: Package
 Title: R Data Science Utilities
 Version: 0.1.0
 Authors@R: person("Zachary Wallen", email = "zachary.d.wallen@gmail.com", role = c("aut", "cre"))
-Description: A personal collection of convenience functions for styling data 
-    displays and outputs, transforming and organizing data, performing statistical 
-    analyses, and other commonly performed actions in data science projects.
+Description: 
+    A personal collection of R functions for commonly performed actions in
+    computational biology and data science projects.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -14,6 +14,7 @@ Imports:
     kableExtra,
     RColorBrewer,
     plotly,
+    logistf,
     biomaRt,
     GenomeInfoDb,
     GenomicRanges,
@@ -22,4 +23,4 @@ Imports:
     SummarizedExperiment,
     VariantAnnotation
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
