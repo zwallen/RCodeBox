@@ -4,7 +4,15 @@
 \alias{export_to_xlsx}
 \title{Export a styled data frame to an Excel worksheet}
 \usage{
-export_to_xlsx(df, out_path, sheet, numeric_columns = NULL)
+export_to_xlsx(
+  df,
+  out_path,
+  sheet,
+  numeric_columns = NULL,
+  row_border_pattern = "N \\\\(\%\\\\)|Mean±SD",
+  col_border_pattern = "N=",
+  stat_pattern = "Coef \\\\["
+)
 }
 \arguments{
 \item{df}{Dataframe to export to file. The first column is used to detect summary header rows
@@ -16,6 +24,19 @@ for adding thin top borders (rows matching \code{"N (\%)"} or \code{"Mean±SD"})
 
 \item{numeric_columns}{Name(s) of numeric columns in the data.frame that need to be coerced to
 numeric type in the workbook.}
+
+\item{row_border_pattern}{Pattern to search for in the first column to put a horizontal border across
+the row. For example, if you have \verb{N (\%)`` next to categorical variable names and }Mean±SD`` next to numeric variable names in the first column you can specify
+the pattern \code{"N \\\\(\%\\\\)|Mean±SD"} to place horizontal borders separating these
+variables. (default: `"N \\(\%\\)|Mean±SD"`)}
+
+\item{col_border_pattern}{Same as \code{row_border_pattern}, but searching for patterns in column names to
+put a left border on the column (e.g., if column names have \verb{N=} in the name
+you can specify \code{"N="} as the pattern to place left border on column).
+(default: \code{"N="})}
+
+\item{stat_pattern}{Pattern that would map to statistics columns (e.g., OR, beta, coef, etc.).
+Used for detecting what columns are the statistics columns. (default: \verb{"Coef \\\["})}
 }
 \value{
 Invisibly returns \code{TRUE} on successful write (value from \code{openxlsx::saveWorkbook()}),

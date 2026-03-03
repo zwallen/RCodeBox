@@ -33,7 +33,7 @@
 #' the variable label, categories, total summary, stratified group summaries, and
 #' regression results (Coefficient and P-value).
 #'
-#' @importFrom stringr str_to_sentence
+#' @importFrom stringr str_split str_to_title
 #' @importFrom logistf logistf
 #' @importFrom stats lm confint pnorm sd na.omit
 #' @export
@@ -74,6 +74,26 @@ stratified_stat_table = function(
     }
   }
 
+  # Create a small function to capitalize categories more aesthetically
+  format_string = function(x) {
+    nocaps = "^and$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$"
+    alwayscaps = "^II$|^III$|^IV$|^V$|^VI$|^VII$|^VIII$|^VIIII$|^X$"
+    paste(
+      sapply(unlist(stringr::str_split(x, " ")), function(y) {
+        ifelse(
+          grepl(nocaps, y, ignore.case = TRUE),
+          y,
+          ifelse(
+            grepl(alwayscaps, y, ignore.case = TRUE),
+            toupper(y),
+            stringr::str_to_title(y)
+          )
+        )
+      }),
+      collapse = " "
+    )
+  }
+
   # For each column of interest, calculate summary statistics and
   # and test for differences between groups
   results = data.frame()
@@ -90,15 +110,22 @@ stratified_stat_table = function(
       col_res = rbind(
         col_res,
         data.frame(
-          Variable = c(
-            ifelse(
-              !is.null(rename_dict),
-              paste0(rename_dict[col], ", N (%)"),
-              paste0(col, ", N (%)")
+          Variable = sapply(
+            gsub(
+              "_",
+              " ",
+              c(
+                ifelse(
+                  !is.null(rename_dict),
+                  paste0(rename_dict[col], ", N (%)"),
+                  paste0(col, ", N (%)")
+                ),
+                rep("", length(n) - 1)
+              )
             ),
-            rep("", length(n) - 1)
+            function(x) format_string(x)
           ),
-          Categories = stringr::str_to_sentence(names(n)),
+          Categories = sapply(names(n), function(x) format_string(x)),
           Total = n_perc
         )
       )
@@ -166,7 +193,7 @@ stratified_stat_table = function(
 
           # Add group name with total N
           colnames(group_res)[1] = paste0(
-            group,
+            format_string(group),
             " (N=",
             table(df[[groups]])[group],
             ")"
@@ -188,10 +215,17 @@ stratified_stat_table = function(
       col_res = rbind(
         col_res,
         data.frame(
-          Variable = ifelse(
-            !is.null(rename_dict),
-            paste0(rename_dict[col], ", Mean±SD"),
-            paste0(col, ", Mean±SD")
+          Variable = sapply(
+            gsub(
+              "_",
+              " ",
+              ifelse(
+                !is.null(rename_dict),
+                paste0(rename_dict[col], ", Mean±SD"),
+                paste0(col, ", Mean±SD")
+              )
+            ),
+            function(x) format_string(x)
           ),
           Categories = "-",
           Total = avg_std
@@ -241,7 +275,7 @@ stratified_stat_table = function(
 
         # Add group name with total N
         colnames(group_res)[1] = paste0(
-          group,
+          format_string(group),
           " (N=",
           table(df[[groups]])[group],
           ")"

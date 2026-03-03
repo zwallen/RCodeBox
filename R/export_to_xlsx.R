@@ -17,6 +17,20 @@
 #' @param numeric_columns
 #' Name(s) of numeric columns in the data.frame that need to be coerced to
 #' numeric type in the workbook.
+#' @param row_border_pattern
+#' Pattern to search for in the first column to put a horizontal border across
+#' the row. For example, if you have `N (%)`` next to categorical variable names and
+#' `Mean±SD`` next to numeric variable names in the first column you can specify
+#' the pattern `"N \\(%\\)|Mean±SD"` to place horizontal borders separating these
+#' variables. (default: `"N \\(%\\)|Mean±SD"`)
+#' @param col_border_pattern
+#' Same as `row_border_pattern`, but searching for patterns in column names to
+#' put a left border on the column (e.g., if column names have `N=` in the name
+#' you can specify `"N="` as the pattern to place left border on column).
+#' (default: `"N="`)
+#' @param stat_pattern
+#' Pattern that would map to statistics columns (e.g., OR, beta, coef, etc.).
+#' Used for detecting what columns are the statistics columns. (default: `"Coef \\["`)
 #'
 #' @return
 #' Invisibly returns `TRUE` on successful write (value from `openxlsx::saveWorkbook()`),
@@ -25,7 +39,15 @@
 #' @importFrom openxlsx loadWorkbook createWorkbook removeWorksheet addWorksheet writeData createStyle addStyle setColWidths saveWorkbook
 #' @export
 #'
-export_to_xlsx = function(df, out_path, sheet, numeric_columns = NULL) {
+export_to_xlsx = function(
+  df,
+  out_path,
+  sheet,
+  numeric_columns = NULL,
+  row_border_pattern = "N \\(%\\)|Mean±SD",
+  col_border_pattern = "N=",
+  stat_pattern = "Coef \\["
+) {
   if (!requireNamespace("openxlsx", quietly = TRUE)) {
     stop("Package 'openxlsx' is required.")
   }
@@ -36,92 +58,96 @@ export_to_xlsx = function(df, out_path, sheet, numeric_columns = NULL) {
 
   # Load or create workbook
   if (file.exists(out_path)) {
-    wb = loadWorkbook(out_path)
+    wb = openxlsx::loadWorkbook(out_path)
   } else {
-    wb = createWorkbook()
+    wb = openxlsx::createWorkbook()
   }
 
   # Add worksheet or rewrite if already present
   if (sheet %in% wb$sheet_names) {
-    removeWorksheet(wb, sheet)
-    addWorksheet(wb, sheet)
+    openxlsx::removeWorksheet(wb, sheet)
+    openxlsx::addWorksheet(wb, sheet)
   } else {
-    addWorksheet(wb, sheet)
+    openxlsx::addWorksheet(wb, sheet)
   }
 
   # Write data
-  writeData(
+  openxlsx::writeData(
     wb,
     sheet,
     df,
     startRow = 1,
     startCol = 1,
-    headerStyle = createStyle(textDecoration = "bold")
+    headerStyle = openxlsx::createStyle(textDecoration = "bold")
   )
 
   # Center align output and make table background white
-  addStyle(
+  openxlsx::addStyle(
     wb,
     sheet,
-    style = createStyle(halign = "center", valign = "center", fgFill = "white"),
+    style = openxlsx::createStyle(
+      halign = "center",
+      valign = "center",
+      fgFill = "white"
+    ),
     rows = 1:(row_limit + 1),
     cols = 1:col_limit,
     gridExpand = TRUE,
     stack = TRUE
   )
 
-  # Add borders to rows with variable names containing "N (%)" or "Mean±SD"
-  addStyle(
+  # Add borders to rows with variable names containing specified pattern
+  openxlsx::addStyle(
     wb,
     sheet,
-    style = createStyle(
+    style = openxlsx::createStyle(
       border = "top",
       borderColour = "black",
       borderStyle = "thin"
     ),
-    rows = grep("N \\(%\\)|Mean±SD", df[[1]]) + 1,
+    rows = grep(row_border_pattern, df[[1]]) + 1,
     cols = 1:col_limit,
     gridExpand = TRUE,
     stack = TRUE
   )
 
-  # Add borders to left of columns with "N="
-  addStyle(
+  # Add borders to left of columns with specified pattern
+  openxlsx::addStyle(
     wb,
     sheet,
-    style = createStyle(
+    style = openxlsx::createStyle(
       border = "left",
       borderColour = "black",
       borderStyle = "thin"
     ),
     rows = 1:(row_limit + 1),
-    cols = grep("N=", colnames(df)),
+    cols = grep(col_border_pattern, colnames(df)),
     gridExpand = TRUE,
     stack = TRUE
   )
 
-  # Add border to left of column with "Coef [95%CI]" if only one exists
-  if (sum(grepl("Coef \\[", colnames(df))) == 1) {
-    addStyle(
+  # Add border to left of column with stat pattern if only one exists
+  if (sum(grepl(stat_pattern, colnames(df))) == 1) {
+    openxlsx::addStyle(
       wb,
       sheet,
-      style = createStyle(
+      style = openxlsx::createStyle(
         border = "left",
         borderColour = "black",
         borderStyle = "thin"
       ),
       rows = 1:(row_limit + 1),
-      cols = grep("Coef \\[", colnames(df)),
+      cols = grep(stat_pattern, colnames(df)),
       gridExpand = TRUE,
       stack = TRUE
     )
   }
 
   # Add thicker border around table and under first row
-  addStyle(
+  openxlsx::addStyle(
     wb,
     sheet,
-    style = createStyle(
+    style = openxlsx::createStyle(
       border = "top",
       borderStyle = "medium",
       borderColour = "black"
@@ -131,10 +157,10 @@ export_to_xlsx = function(df, out_path, sheet, numeric_columns = NULL) {
     gridExpand = TRUE,
     stack = TRUE
   )
-  addStyle(
+  openxlsx::addStyle(
     wb,
     sheet,
-    style = createStyle(
+    style = openxlsx::createStyle(
       border = "bottom",
       borderStyle = "medium",
       borderColour = "black"
@@ -144,10 +170,10 @@ export_to_xlsx = function(df, out_path, sheet, numeric_columns = NULL) {
     gridExpand = TRUE,
     stack = TRUE
   )
-  addStyle(
+  openxlsx::addStyle(
     wb,
     sheet,
-    style = createStyle(
+    style = openxlsx::createStyle(
       border = "left",
       borderStyle = "medium",
       borderColour = "black"
@@ -157,10 +183,10 @@ export_to_xlsx = function(df, out_path, sheet, numeric_columns = NULL) {
     gridExpand = TRUE,
     stack = TRUE
   )
-  addStyle(
+  openxlsx::addStyle(
     wb,
     sheet,
-    style = createStyle(
+    style = openxlsx::createStyle(
       border = "right",
       borderStyle = "medium",
       borderColour = "black"
@@ -177,11 +203,17 @@ export_to_xlsx = function(df, out_path, sheet, numeric_columns = NULL) {
       for (row in seq_len(row_limit)) {
         cell_value = as.numeric(as.character(df[row, col]))
         if (!is.na(cell_value)) {
-          writeData(wb, sheet, cell_value, startCol = col, startRow = row + 1)
-          addStyle(
+          openxlsx::writeData(
             wb,
             sheet,
-            style = createStyle(numFmt = "GENERAL"),
+            cell_value,
+            startCol = col,
+            startRow = row + 1
+          )
+          openxlsx::addStyle(
+            wb,
+            sheet,
+            style = openxlsx::createStyle(numFmt = "SCIENTIFIC"),
             rows = row + 1,
             cols = col,
             gridExpand = TRUE,
@@ -193,8 +225,8 @@ export_to_xlsx = function(df, out_path, sheet, numeric_columns = NULL) {
   }
 
   # Auto-width columns
-  setColWidths(wb, sheet, cols = 1:col_limit, widths = "auto")
+  openxlsx::setColWidths(wb, sheet, cols = 1:col_limit, widths = "auto")
 
   # Output styled data to excel sheet
-  saveWorkbook(wb, out_path, overwrite = TRUE)
+  openxlsx::saveWorkbook(wb, out_path, overwrite = TRUE)
 }

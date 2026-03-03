@@ -4,14 +4,34 @@
 \alias{kable_html_table}
 \title{Create a styled HTML table with kableExtra}
 \usage{
-kable_html_table(df, bold_columns = 1, caption = NULL)
+kable_html_table(
+  df,
+  bold_columns = 1,
+  row_border_pattern = "N \\\\(\%\\\\)|Mean±SD",
+  col_border_pattern = "N=",
+  stat_pattern = "Coef \\\\[",
+  caption = NULL
+)
 }
 \arguments{
 \item{df}{Input table data. The first column is used to detect section headers for
-border styling via a regex match on \code{"N (\%)"} or \code{"Mean±SD"}.}
+border styling via a regex match.}
 
 \item{bold_columns}{Column indices to render in bold (e.g., \code{1} or \code{1:2}). Use \code{NULL} or
 \code{integer(0)} to skip bolding. (default: \code{1})}
+
+\item{row_border_pattern}{Pattern to search for in the first column to put a horizontal border across
+the row. For example, if you have \verb{N (\%)`` next to categorical variable names and }Mean±SD`` next to numeric variable names in the first column you can specify
+the pattern \code{"N \\\\(\%\\\\)|Mean±SD"} to place horizontal borders separating these
+variables. (default: `"N \\(\%\\)|Mean±SD"`)}
+
+\item{col_border_pattern}{Same as \code{row_border_pattern}, but searching for patterns in column names to
+put a left border on the column (e.g., if column names have \verb{N=} in the name
+you can specify \code{"N="} as the pattern to place left border on column).
+(default: \code{"N="})}
+
+\item{stat_pattern}{Pattern that would map to statistics columns (e.g., OR, beta, coef, etc.).
+Used for detecting what columns are the statistics columns. (default: \verb{"Coef \\\["})}
 
 \item{caption}{Caption to give the table.}
 }
