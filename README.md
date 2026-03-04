@@ -18,7 +18,7 @@ library(RCodeBox)
 ```
 
 > [!NOTE]
-> See the `examples` directory for a vignette of function usage examples.
+> See [RCodeBox Examples](https://zwallen.github.io/RCodeBox/examples.html) for a vignette of function usage examples.
 
 > [!IMPORTANT]
 > As these are personal convenience functions wrapping existing functions and packages:

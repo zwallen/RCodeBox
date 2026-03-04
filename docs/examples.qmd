@@ -43,7 +43,7 @@ library(SummarizedExperiment)
 The below section details how to download and prep the example dataset used to showcase `RCodeBox` function usage. 
 
 ::: {.callout-note}
-The example data download and preparation process can be lengthy, so feel free to skip to **@sec-usage-examples** and pickup with the prepped data that's stored in and can be loaded from the package itself.
+The example data download and preparation process can be lengthy, so feel free to skip to **@sec-usage-examples** and pickup with the prepped data that's stored in and is automatically loaded from the package itself.
 :::
 
 First we download some example transcriptomic and corresponding clinical data from [The Cancer Genome Atlas (TCGA) data portal](https://portal.gdc.cancer.gov/) via the `TCGAbiolinks` package to use in our examples. We will obtain primary tumor and solid normal tissue data from colon adenocarcinoma (COAD) and rectum adenocarcinoma (READ) cases from TCGA.
@@ -92,23 +92,11 @@ if (file.exists("results.rds")) {
 }
 ```
 
-As stated above, the prepared data from this section is contained within the `RCodeBox` package and can be accessed via the `data()` function.
+As stated above, the prepared data from this section is contained within the `RCodeBox` package and can be readily accessed as soon as you load the package into R.
 
 # Usage Examples {#sec-usage-examples}
 
 The following sections show `RCodeBox` functions in action based on some typical use cases. These are not meant to cover *everything* you can do with the functions in `RCodeBox`, just give an idea of how they are used.
-
-Lets load the previously prepped TCGA data.
-
-```{r}
-#| label: load-data
-
-# Load previously prepped data
-clinical_data = data("example_data/clinical_data.rds")
-gex_data = readRDS("example_data/gex_data.rds")
-gex_counts = readRDS("example_data/gex_counts.rds")
-gex_tpm = readRDS("example_data/gex_tpm.rds")
-```
 
 ## Basic Stratified Table
 
