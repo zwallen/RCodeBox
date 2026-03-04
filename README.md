@@ -2,7 +2,7 @@
 
 [![R-CMD-check](https://github.com/zwallen/RCodeBox/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/zwallen/RCodeBox/actions/workflows/R-CMD-check.yaml)
 
-A personal collection of R functions for commonly performed actions in computational biology and data science projects.
+A collection of R functions for commonly performed actions in computational biology and data science projects.
 
 Releases of the package can be installed from GitHub:
 
@@ -17,17 +17,20 @@ And imported in your R scripts as follows:
 library(RCodeBox)
 ```
 
-## Important Disclaimer
+> [!NOTE]
+> See the `examples` directory for a vignette of function usage examples.
 
-As these are only personal convenience functions wrapping existing functions and packages:
-
-* **Compatibility:** They may or may not work for your purposes as they were designed in response to specific workflows and analyses. They are not meant to be designed for general audience use.
-* **Support:** Limited support is provided - use at your own risk and test thoroughly with your data.
-* **Citation:** Citation of the package is not necessary if you decide to use any of the functions written here (but glad if they were able to help!).
+> [!IMPORTANT]
+> As these are personal convenience functions wrapping existing functions and packages:
+>
+> * **Compatibility:** They may or may not work for your purposes as they were designed in response to specific workflows and analyses.
+> * **Support:** Limited support is provided - use at your own risk and test thoroughly with your data.
+> * **Citation:** Citation of the package is not necessary if you decide to use any of the functions written here (but glad if they were able to help!).
 
 ## Issues and Contributing
 
 This is primarily a personal package, but if you encounter bugs or have suggestions:
+
 * Open an issue on GitHub for bug reports
 * Pull requests are welcome for bug fixes
 * For questions, contact: zachary.d.wallen@gmail.com

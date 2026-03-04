@@ -76,7 +76,7 @@ stratified_stat_table = function(
 
   # Create a small function to capitalize categories more aesthetically
   format_string = function(x) {
-    nocaps = "^and$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$"
+    nocaps = "^and$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$|^Mean±SD$"
     alwayscaps = "^II$|^III$|^IV$|^V$|^VI$|^VII$|^VIII$|^VIIII$|^X$"
     paste(
       sapply(unlist(stringr::str_split(x, " ")), function(y) {

@@ -35,7 +35,7 @@
 #' A `kableExtra` HTML table object (class typically including `knitr_kable`)
 #' that can be printed in HTML contexts (R Markdown/Quarto, Shiny).
 #'
-#' @importFrom kableExtra kbl kable_styling column_spec row_spec scroll_box
+#' @importFrom kableExtra kbl kable_styling column_spec row_spec
 #' @export
 #'
 kable_html_table = function(
@@ -64,9 +64,6 @@ kable_html_table = function(
     fixed_thead = TRUE,
     bootstrap_options = "none"
   )
-
-  # Add scrolling capability
-  tbl = kableExtra::scroll_box(tbl, height = "500px", width = "100%")
 
   # Bold first N columns
   tbl = kableExtra::column_spec(tbl, column = bold_columns, bold = TRUE)

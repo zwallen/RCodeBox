@@ -12,6 +12,7 @@ LazyData: true
 Imports:
     openxlsx,
     kableExtra,
+    stringr,
     RColorBrewer,
     plotly,
     logistf,
