@@ -25,3 +25,5 @@ Imports:
     VariantAnnotation
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
+Depends: 
+    R (>= 3.5)
