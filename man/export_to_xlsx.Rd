@@ -16,7 +16,7 @@ export_to_xlsx(
 }
 \arguments{
 \item{df}{Dataframe to export to file. The first column is used to detect summary header rows
-for adding thin top borders (rows matching \code{"N (\%)"} or \code{"Mean±SD"}).}
+for adding thin top borders (rows matching \code{"N (\%)"} or \code{"Mean\eqn{\pm}{+/-}SD"}).}
 
 \item{out_path}{File path for the output \code{.xlsx}. Existing files at this path are overwritten.}
 
@@ -26,9 +26,9 @@ for adding thin top borders (rows matching \code{"N (\%)"} or \code{"Mean±SD"})
 numeric type in the workbook.}
 
 \item{row_border_pattern}{Pattern to search for in the first column to put a horizontal border across
-the row. For example, if you have \verb{N (\%)`` next to categorical variable names and }Mean±SD`` next to numeric variable names in the first column you can specify
-the pattern \code{"N \\\\(\%\\\\)|Mean±SD"} to place horizontal borders separating these
-variables. (default: `"N \\(\%\\)|Mean±SD"`)}
+the row. For example, if you have \verb{N (\%)`` next to categorical variable names and }Mean\eqn{\pm}{+/-}SD`` next to numeric variable names in the first column you can specify
+the pattern \code{"N \\\\(\%\\\\)|Mean\eqn{\pm}{+/-}SD"} to place horizontal borders separating these
+variables. (default: `"N \\(\%\\)|Mean\eqn{\pm}{+/-}SD"`)}
 
 \item{col_border_pattern}{Same as \code{row_border_pattern}, but searching for patterns in column names to
 put a left border on the column (e.g., if column names have \verb{N=} in the name
@@ -46,6 +46,6 @@ and has the side effect of creating/overwriting the Excel file at \code{out_path
 Writes a data frame to an \code{.xlsx} file with publication-style formatting using
 \code{openxlsx}. The function bolds the header row, center-aligns all cells,
 draws thin top borders above rows whose first column contains \code{"N (\%)"} or
-\code{"Mean±SD"}, and adds a medium border at the top and bottom of the table.
+\code{"Mean\eqn{\pm}{+/-}SD"}, and adds a medium border at the top and bottom of the table.
 Columns are auto-sized to fit content, and the workbook is saved to \code{out_path}.
 }

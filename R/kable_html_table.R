@@ -4,7 +4,7 @@
 #' Renders a centered, scroll-friendly HTML table from a data frame using
 #' `kableExtra` (via `kbl()`), with a fixed header, bolded leading columns,
 #' compact header styling, and sectioning borders for summary rows that contain
-#' `"N (%)"` or `"Mean±SD"` in the first column. Columns are given a minimum CSS
+#' `"N (%)"` or `"Mean\eqn{\pm}{+/-}SD"` in the first column. Columns are given a minimum CSS
 #' width based on the maximum string length observed in each column, and all
 #' body text is set to a small, consistent font size for compact display.
 #'
@@ -17,9 +17,9 @@
 #' @param row_border_pattern
 #' Pattern to search for in the first column to put a horizontal border across
 #' the row. For example, if you have `N (%)`` next to categorical variable names and
-#' `Mean±SD`` next to numeric variable names in the first column you can specify
-#' the pattern `"N \\(%\\)|Mean±SD"` to place horizontal borders separating these
-#' variables. (default: `"N \\(%\\)|Mean±SD"`)
+#' `Mean\eqn{\pm}{+/-}SD`` next to numeric variable names in the first column you can specify
+#' the pattern `"N \\(%\\)|Mean\eqn{\pm}{+/-}SD"` to place horizontal borders separating these
+#' variables. (default: `"N \\(%\\)|Mean\eqn{\pm}{+/-}SD"`)
 #' @param col_border_pattern
 #' Same as `row_border_pattern`, but searching for patterns in column names to
 #' put a left border on the column (e.g., if column names have `N=` in the name
@@ -41,7 +41,7 @@
 kable_html_table = function(
   df, 
   bold_columns = 1, 
-  row_border_pattern = "N \\(%\\)|Mean±SD",
+  row_border_pattern = "N \\(%\\)|Mean\u00B1SD",
   col_border_pattern = "N=",
   stat_pattern = "Coef \\[",
   caption = NULL

@@ -6,7 +6,7 @@
 #' tests of difference between groups. Categorical variables are summarized as
 #' counts and percentages and compared using Firth's penalized logistic
 #' regression (one-vs-category with a group indicator); numeric variables are
-#' summarized as mean ± SD and compared using linear regression. Optional
+#' summarized as mean \eqn{\pm}{+/-} SD and compared using linear regression. Optional
 #' covariates can be included to adjust the models.
 #'
 #' @param df
@@ -76,7 +76,7 @@ stratified_stat_table = function(
 
   # Create a small function to capitalize categories more aesthetically
   format_string = function(x) {
-    nocaps = "^and$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$|^Mean±SD$"
+    nocaps = "^and$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$|^Mean\u00B1SD$"
     alwayscaps = "^II$|^III$|^IV$|^V$|^VI$|^VII$|^VIII$|^VIIII$|^X$"
     paste(
       sapply(unlist(stringr::str_split(x, " ")), function(y) {
@@ -209,7 +209,7 @@ stratified_stat_table = function(
       # Calculate summary statistics for total cases
       avg = round(mean(df[[col]], na.rm = TRUE), 1)
       std = round(sd(df[[col]], na.rm = TRUE), 1)
-      avg_std = paste0(avg, "±", std)
+      avg_std = paste0(avg, "\u00B1", std)
 
       # Add to results
       col_res = rbind(
@@ -221,8 +221,8 @@ stratified_stat_table = function(
               " ",
               ifelse(
                 !is.null(rename_dict),
-                paste0(rename_dict[col], ", Mean±SD"),
-                paste0(col, ", Mean±SD")
+                paste0(rename_dict[col], ", Mean\u00B1SD"),
+                paste0(col, ", Mean\u00B1SD")
               )
             ),
             function(x) format_string(x)
@@ -247,7 +247,7 @@ stratified_stat_table = function(
         # Calculate summary statistics
         avg = round(mean(y[x == 1], na.rm = TRUE), 1)
         std = round(sd(y[x == 1], na.rm = TRUE), 1)
-        avg_std = paste0(avg, "±", std)
+        avg_std = paste0(avg, "\u00B1", std)
 
         # Perform linear regression
         if (!is.null(covariates)) {

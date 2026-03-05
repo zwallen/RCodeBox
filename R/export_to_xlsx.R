@@ -4,12 +4,12 @@
 #' Writes a data frame to an `.xlsx` file with publication-style formatting using
 #' `openxlsx`. The function bolds the header row, center-aligns all cells,
 #' draws thin top borders above rows whose first column contains `"N (%)"` or
-#' `"Mean±SD"`, and adds a medium border at the top and bottom of the table.
+#' `"Mean\eqn{\pm}{+/-}SD"`, and adds a medium border at the top and bottom of the table.
 #' Columns are auto-sized to fit content, and the workbook is saved to `out_path`.
 #'
 #' @param df
 #' Dataframe to export to file. The first column is used to detect summary header rows
-#' for adding thin top borders (rows matching `"N (%)"` or `"Mean±SD"`).
+#' for adding thin top borders (rows matching `"N (%)"` or `"Mean\eqn{\pm}{+/-}SD"`).
 #' @param out_path
 #' File path for the output `.xlsx`. Existing files at this path are overwritten.
 #' @param sheet
@@ -20,9 +20,9 @@
 #' @param row_border_pattern
 #' Pattern to search for in the first column to put a horizontal border across
 #' the row. For example, if you have `N (%)`` next to categorical variable names and
-#' `Mean±SD`` next to numeric variable names in the first column you can specify
-#' the pattern `"N \\(%\\)|Mean±SD"` to place horizontal borders separating these
-#' variables. (default: `"N \\(%\\)|Mean±SD"`)
+#' `Mean\eqn{\pm}{+/-}SD`` next to numeric variable names in the first column you can specify
+#' the pattern `"N \\(%\\)|Mean\eqn{\pm}{+/-}SD"` to place horizontal borders separating these
+#' variables. (default: `"N \\(%\\)|Mean\eqn{\pm}{+/-}SD"`)
 #' @param col_border_pattern
 #' Same as `row_border_pattern`, but searching for patterns in column names to
 #' put a left border on the column (e.g., if column names have `N=` in the name
@@ -44,7 +44,7 @@ export_to_xlsx = function(
   out_path,
   sheet,
   numeric_columns = NULL,
-  row_border_pattern = "N \\(%\\)|Mean±SD",
+  row_border_pattern = "N \\(%\\)|Mean\u00B1SD",
   col_border_pattern = "N=",
   stat_pattern = "Coef \\["
 ) {

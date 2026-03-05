@@ -4,4 +4,4 @@
 ^\.git$
 ^LICENSE\.md$
 ^\.github$
-^examples$
+^docs$

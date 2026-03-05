@@ -21,9 +21,9 @@ border styling via a regex match.}
 \code{integer(0)} to skip bolding. (default: \code{1})}
 
 \item{row_border_pattern}{Pattern to search for in the first column to put a horizontal border across
-the row. For example, if you have \verb{N (\%)`` next to categorical variable names and }Mean±SD`` next to numeric variable names in the first column you can specify
-the pattern \code{"N \\\\(\%\\\\)|Mean±SD"} to place horizontal borders separating these
-variables. (default: `"N \\(\%\\)|Mean±SD"`)}
+the row. For example, if you have \verb{N (\%)`` next to categorical variable names and }Mean\eqn{\pm}{+/-}SD`` next to numeric variable names in the first column you can specify
+the pattern \code{"N \\\\(\%\\\\)|Mean\eqn{\pm}{+/-}SD"} to place horizontal borders separating these
+variables. (default: `"N \\(\%\\)|Mean\eqn{\pm}{+/-}SD"`)}
 
 \item{col_border_pattern}{Same as \code{row_border_pattern}, but searching for patterns in column names to
 put a left border on the column (e.g., if column names have \verb{N=} in the name
@@ -43,7 +43,7 @@ that can be printed in HTML contexts (R Markdown/Quarto, Shiny).
 Renders a centered, scroll-friendly HTML table from a data frame using
 \code{kableExtra} (via \code{kbl()}), with a fixed header, bolded leading columns,
 compact header styling, and sectioning borders for summary rows that contain
-\code{"N (\%)"} or \code{"Mean±SD"} in the first column. Columns are given a minimum CSS
+\code{"N (\%)"} or \code{"Mean\eqn{\pm}{+/-}SD"} in the first column. Columns are given a minimum CSS
 width based on the maximum string length observed in each column, and all
 body text is set to a small, consistent font size for compact display.
 }

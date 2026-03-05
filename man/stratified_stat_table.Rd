@@ -42,6 +42,6 @@ including totals and group-stratified estimates, and performs regression-based
 tests of difference between groups. Categorical variables are summarized as
 counts and percentages and compared using Firth's penalized logistic
 regression (one-vs-category with a group indicator); numeric variables are
-summarized as mean ± SD and compared using linear regression. Optional
+summarized as mean \eqn{\pm}{+/-} SD and compared using linear regression. Optional
 covariates can be included to adjust the models.
 }
