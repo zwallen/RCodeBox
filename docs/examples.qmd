@@ -26,7 +26,7 @@ format:
 
 # Introduction {#sec-introduction}
 
-This document showcases usage examples for **`RCodeBox`** functions using a real oncology dataset. See the following sections for example data preparation and usage examples. This is a living document that will be updated as new functions and additional functionality of existing functions are added.
+This document showcases usage examples for `RCodeBox` functions using a real oncology dataset. See the following sections for example data preparation and usage examples. This is a living document that will be updated as new functions and additional functionality of existing functions are added.
 
 Lets go ahead and load the `RCodeBox` package and other packages will need for this vignette.
 
@@ -69,7 +69,7 @@ Then we can download the data using the query specifications.
 GDCdownload(query)
 ```
 
-We then use the `GDCprepare` function to prepare the downloaded data by concatenating all the individual RNA-seq files we just downloaded and attaching corresponding clinical data. The prepared data is a `RangedSummarizedExperiment` object, so we will need to use the `SummarizedExperiment` package to work with it. We can extract out the data we need to more standard `data.frame` formats to simplify further processing. 
+We then use the `GDCprepare` function to prepare the downloaded data by concatenating all the individual RNA-seq files we just downloaded and attaching corresponding clinical data. The prepared data is a `RangedSummarizedExperiment` object, so we will need to use the `SummarizedExperiment` package to work with it. We can extract out the data we need to more standard dataframe formats to simplify further processing. 
 
 ```{r, eval = FALSE}
 #| label: prep-data
@@ -98,7 +98,7 @@ As stated above, the prepared data from this section is contained within the `RC
 
 The following sections show `RCodeBox` functions in action based on some typical use cases. These are not meant to cover *everything* you can do with the functions in `RCodeBox`, just give an idea of how they are used.
 
-## Basic Stratified Table
+## Stratified Statistics Table
 
 The function `stratified_stat_table` is a good workhorse function for quickly creating a publication-ready table of summary statistics with statistical testing for multiple categorical and quantitative variables. The function's main input is a dataframe with a grouping variable of interest and other variables you are interested in calculating summary statistics for and determining if any significantly differ between groups in the grouping variable. You can either display the variable names as they are, or supply a named list to rename the variables (i.e., if you want more formatted labeling in the table). You can additionally supply covariates to adjust for during statistical testing. The function uses Firth's penalized logistic regression (via the `logistf` package) or linear regression (via the base `lm` function) to test categorical and quantitative variables, respectively. 
 
@@ -277,3 +277,16 @@ export_to_xlsx(
 
 ![](example_output/table2.png)
 
+::: {.callout-caution}
+While the `kable_html_table` and `export_to_xlsx` should be flexible to work with any dataframe, they were specifically designed to work with results from running the `stratified_strat_table` function, therefore, unexpected results may occur when using them not on this function's output.
+:::
+
+## Plotting
+
+A number of functions included in this package can be used for quickly generating publication-ready data visualizations that are commonly performed in biomedical research. These functions include:
+
+* `stratified_barplot`: Produces stacked bar plots for a categorical variable of interest stratified by a grouping variable.
+* `stratified_violin_boxplot`: Produces a violin-boxplot for visualizing the distributions of a quantitative variable of interest stratified by a grouping variable.
+* `volcano_plot`: Produces a volcano plot visualizing the relationship between p-values and effect sizes obtained from statistically testing many features of a single data modality (e.g., testing for differentially expressed genes from RNA-seq experiments).
+
+For `stratified_barplot` and `stratified_violin_boxplot` functions, you can optionally request pairwise statistical testing to be performed (with or without multiple testing correction) and significant associations annotated in the plots. Statistical testing is performed via Fisher's exact test for categorical variables (`stratified_barplot`) and Welch's t-test or Wilcoxon rank-sum test for quantitative variables (`stratified_violin_boxplot`).
