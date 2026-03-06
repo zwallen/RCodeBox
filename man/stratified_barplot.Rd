@@ -2,47 +2,66 @@
 % Please edit documentation in R/stratified_barplot.R
 \name{stratified_barplot}
 \alias{stratified_barplot}
-\title{Plot a Stratified Barplot Using Plotly}
+\title{Plot a stratified barplot with or without pairwise statistical testing}
 \usage{
 stratified_barplot(
-  data,
-  var,
-  strata,
+  df,
+  groups,
+  column,
   ylab = NULL,
   xlab = NULL,
   legendlab = NULL,
   colors = NULL,
-  test = c("fisher.test", "chisq.test"),
-  alpha = 0.05
+  test = "fisher.test",
+  multi_test_correct = NULL,
+  alpha = 0.05,
+  save = FALSE,
+  figwidth = 5,
+  figheight = 5,
+  out_path = "stratified_barplot"
 )
 }
 \arguments{
-\item{data}{Dataframe containing the variables of interest.}
+\item{df}{Dataframe containing the grouping variable and categorical variable of interest.}
 
-\item{var}{Name of the categorical variable in \code{data} to be plotted.}
+\item{groups}{Name of the categorical variable in \code{df} to group by.}
 
-\item{strata}{Name of the categorical variable in \code{data} to group by.}
+\item{column}{Name of the categorical variable in \code{df} to be plotted.}
 
-\item{ylab}{Title for the y-axis (default is to use \verb{Frequency (\%)}).}
+\item{ylab}{Title for the y-axis. (default is to use \verb{Frequency (\%)})}
 
-\item{xlab}{Title for the x-axis (default is to use name given to \code{strata}).}
+\item{xlab}{Title for the x-axis. (default is to use name given to \code{groups})}
 
-\item{legendlab}{Title for the legend (default is to use name given to \code{var}).}
+\item{legendlab}{Title for the legend. (default is to use name given to \code{column})}
 
 \item{colors}{Vector of R recognized color strings the length of the number of groups in
-the variable provided to \code{var} (vector).}
+the variable provided to \code{column}.}
 
-\item{test}{Which test to use for group comparison: \code{fisher.test} or \code{chisq.test}
-(default: \code{fisher.test}).}
+\item{test}{Which test to use for group comparison: \code{fisher.test}, \code{chisq.test}, or \code{NULL}
+(no testing performed). (default: \code{fisher.test})}
 
-\item{alpha}{P-value threshold for significance (default: 0.05).}
+\item{multi_test_correct}{Which method to use for multiple testing correction. Can specify any methods
+that are accepted by the \code{p.adjust} function. (default is to perform no
+correction)}
+
+\item{alpha}{P-value threshold for significance. (default: 0.05)}
+
+\item{save}{Whether to save the image to file. (default: FALSE)}
+
+\item{figwidth}{Width of the output image file in pixels (\code{px}).}
+
+\item{figheight}{Height of the output image file in pixels (\code{px}).}
+
+\item{out_path}{File path for the output image file. Existing files at this path are overwritten.
+Whatever extension included in the image file name (e.g., jpg, png, pdf) will
+be the format that is outputted.}
 }
 \value{
-A \code{plotly} figure object.
+A \code{ggplot2} figure object. If export is \code{TRUE}, also exports the image to file.
 }
 \description{
 This function creates a bar plot reporting frequencies of a categorical
-variable grouped by a specified strata variable. It can also test for
-significant differences between groups using Fisher's exact test or
-Chi-squared test, annotating significant comparisons in the plot.
+variable grouped by a specified grouping variable. It can also test for
+significant differences between groups using Fisher's exact test or Chi-squared
+test, annotating significant comparisons in the plot.
 }

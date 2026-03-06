@@ -18,7 +18,7 @@ format:
     toc-depth: 5
     toc-title: Contents
     toc-expand: true
-    number-sections: true
+    number-sections: false
     code-tools: true
     embed-resources: true
     html-table-processing: none
@@ -43,15 +43,18 @@ library(SummarizedExperiment)
 The below section details how to download and prep the example dataset used to showcase `RCodeBox` function usage. 
 
 ::: {.callout-note}
-The example data download and preparation process can be lengthy, so feel free to skip to **@sec-usage-examples** and pickup with the prepped data that's stored in and is automatically loaded from the package itself.
+
+The example data download and preparation process can be lengthy, so feel free to skip to the [Usage Examples](#sec-usage-examples) section and pickup with the prepped data that's stored in and is automatically loaded from the package itself.
+
 :::
 
 First we download some example transcriptomic and corresponding clinical data from [The Cancer Genome Atlas (TCGA) data portal](https://portal.gdc.cancer.gov/) via the `TCGAbiolinks` package to use in our examples. We will obtain primary tumor and solid normal tissue data from colon adenocarcinoma (COAD) and rectum adenocarcinoma (READ) cases from TCGA.
 
 First specify the query parameters for the TCGA data.
 
-```{r, eval = FALSE}
+```{r}
 #| label: query
+#| eval: false
 
 query = GDCquery(
   project = c("TCGA-COAD", "TCGA-READ"),
@@ -63,16 +66,18 @@ query = GDCquery(
 
 Then we can download the data using the query specifications.
 
-```{r, eval = FALSE}
+```{r}
 #| label: data-download
+#| eval: false
 
 GDCdownload(query)
 ```
 
 We then use the `GDCprepare` function to prepare the downloaded data by concatenating all the individual RNA-seq files we just downloaded and attaching corresponding clinical data. The prepared data is a `RangedSummarizedExperiment` object, so we will need to use the `SummarizedExperiment` package to work with it. We can extract out the data we need to more standard dataframe formats to simplify further processing. 
 
-```{r, eval = FALSE}
+```{r}
 #| label: prep-data
+#| eval: false
 
 # Prepare downloaded data
 gdc_data = GDCprepare(query, save = FALSE)
@@ -98,15 +103,26 @@ As stated above, the prepared data from this section is contained within the `RC
 
 The following sections show `RCodeBox` functions in action based on some typical use cases. These are not meant to cover *everything* you can do with the functions in `RCodeBox`, just give an idea of how they are used.
 
-## Stratified Statistics Table
+Lets load the prepared TCGA data.
+
+```{r}
+#| label: load-data
+
+data(clinical_data)
+data(gex_data)
+data(gex_counts)
+data(gex_tpm)
+```
+
+## Stratified Statistics Table {#sec-stratified-stat-table}
 
 The function `stratified_stat_table` is a good workhorse function for quickly creating a publication-ready table of summary statistics with statistical testing for multiple categorical and quantitative variables. The function's main input is a dataframe with a grouping variable of interest and other variables you are interested in calculating summary statistics for and determining if any significantly differ between groups in the grouping variable. You can either display the variable names as they are, or supply a named list to rename the variables (i.e., if you want more formatted labeling in the table). You can additionally supply covariates to adjust for during statistical testing. The function uses Firth's penalized logistic regression (via the `logistf` package) or linear regression (via the base `lm` function) to test categorical and quantitative variables, respectively. 
 
-### Two Group Table
+### Two Group Table {#sec-stratified-stat-table-2-group}
 
 Below we use the function on a two group grouping variable: determining what patient demographics and/or clinical variables may differ between the cancer histologies, i.e., colon and rectal adenocarcinoma. We can visualize this as an HTML-based table with the function `kable_html_table`, which is useful for when you are performing analyses in interactive notebooks like Quarto or Rmarkdown and rendering to HTML.
 
-See **@tbl-1** for results.
+See @tbl-1 for results.
 
 ```{r}
 #| label: tbl-1
@@ -173,7 +189,9 @@ We can see from the results that patients with rectal adenocarcinoma in this dat
 Using the `export_to_xlsx` function, we can export the results to a publication-ready table. 
 
 ::: {.callout-tip}
+
 Make sure to specify the `numeric_columns` parameter if there are any numeric columns in the data, so it is formatted correctly or else it will come out as text (which is not the end of the world, just annoying).
+
 :::
 
 ```{r}
@@ -191,11 +209,11 @@ This is a snapshot of the exported table in Excel.
 
 ![](example_output/table1.png)
 
-### Multi Group Table
+### Multi Group Table {#sec-stratified-stat-table-multi}
 
 Below we use the function on a grouping variable with more than two groups: determining what patient demographics and/or clinical variables may differ between different gene expression quartiles of PD-L1 (*CD274*). The overall parameters and process for the `stratified_stat_table` are the same, but the output and interpretation are a little different. Instead of just one coefficient and corresponding p-value per variable as seen for a two group grouping variable, the function will output coefficients and p-values for each group specified in the grouping variable. This is because the function performs statistical testing for each group vs all other groups (one-vs-all testing framework) in lieu of performing an omnibus test for differences across groups (e.g., what's done in a Kruskal-Wallis rank-sum test or ANOVA).
 
-See **@tbl-2** for results.
+See @tbl-2 for results.
 
 ```{r}
 #| label: tbl-2
@@ -237,10 +255,12 @@ From these results we see that patients with tumors having very high PD-L1 gene 
 To test and see if these associations with age and race are at least partly due to enrichment of colon adenocarcinoma cases, we can supply cancer type as a covariate to the `stratified_stat_table` function, adjusting the analyses for differences between cancer types. 
 
 ::: {.callout-tip}
+
 For a sanity check, we can leave cancer types in the table, the results will just be moot since we are adjusting the analysis by this variable, but it will tell us that we are successfully adjusting for these effects.
+
 :::
 
-See **@tbl-adj-2** for results.
+See @tbl-adj-2 for results.
 
 ```{r}
 #| label: tbl-adj-2
@@ -278,15 +298,169 @@ export_to_xlsx(
 ![](example_output/table2.png)
 
 ::: {.callout-caution}
-While the `kable_html_table` and `export_to_xlsx` should be flexible to work with any dataframe, they were specifically designed to work with results from running the `stratified_strat_table` function, therefore, unexpected results may occur when using them not on this function's output.
+
+* While the `kable_html_table` and `export_to_xlsx` should be flexible to work with any dataframe, they were specifically designed to work with results from running the `stratified_strat_table` function, therefore, unexpected results may occur when using them not on this function's output.
+
+* Theoretically, the `stratified_stat_table` function will work with any grouping variable regardless the number of groups contained within the variable, however, that doesn't mean you SHOULD test a ton of groups, especially since the function does not do multiple testing correction. I would limit to 3 or 4 groups, any more than that you really should be doing multiple testing corrections and it will start to become difficult to interpret results. If you have a grouping variable with a lot of groups, see if you can collapse some or break it up somehow to make it more digestible.
+
 :::
 
-## Plotting
+## Plotting {#sec-plotting}
 
-A number of functions included in this package can be used for quickly generating publication-ready data visualizations that are commonly performed in biomedical research. These functions include:
+A number of functions included in this package can be used for quickly generating publication-ready data visualizations that are commonly performed in scientific research. These functions produce the following types of plots:
 
-* `stratified_barplot`: Produces stacked bar plots for a categorical variable of interest stratified by a grouping variable.
-* `stratified_violin_boxplot`: Produces a violin-boxplot for visualizing the distributions of a quantitative variable of interest stratified by a grouping variable.
-* `volcano_plot`: Produces a volcano plot visualizing the relationship between p-values and effect sizes obtained from statistically testing many features of a single data modality (e.g., testing for differentially expressed genes from RNA-seq experiments).
+[**Traditional Plots**](#sec-traditional-plots)
 
-For `stratified_barplot` and `stratified_violin_boxplot` functions, you can optionally request pairwise statistical testing to be performed (with or without multiple testing correction) and significant associations annotated in the plots. Statistical testing is performed via Fisher's exact test for categorical variables (`stratified_barplot`) and Welch's t-test or Wilcoxon rank-sum test for quantitative variables (`stratified_violin_boxplot`).
+* [`stratified_barplot`](#sec-stratified-barplot): Plot for showing the frequency distribution of a categorical variable of interest stratified by a grouping variable.
+
+* [`stratified_violin_boxplot`](#sec-stratified-violin-boxplot): Plot for visualizing the distributions of a quantitative variable of interest stratified by a grouping variable.
+
+[**Specialty Plots**](#sec-specialty-plots)
+
+* [`composition_barplot`](#sec-composition-barplot): Stacked barplot normalized to 1 (or 100%) for showing compositions of a categorical variable of interest within groups or individual observations (e.g., a breakdown of genetic ancestry compositions for a cohort of individuals).
+
+* [`longtail_plot`](#sec-longtail-plot): Non-normalized stacked barplots for showing compositions of a categorical variable of interest within groups while preserving (and sorting by) the total count/frequency of groups. Observations are sorted from most prevalent to least, creating a "long tail" of data, hence the name. Commonly used for visualizing genomic alteration frequencies grouped by genes and broken down by alteration type.
+
+* [`volcano_plot`](#sec-volcano-plot): Plot for visualizing the relationship between p-values (y-axis) and effect sizes (x-axis) obtained from statistically testing many features of a single data modality (e.g., testing for differentially expressed genes from RNA-seq experiments).
+
+All functions have the option to save the image to file and modify the width and height of the exported file, so it's publication-ready.
+
+### Traditional Plots {#sec-traditional-plots}
+
+The following functions produce plots that are useful for showing the distributions of categorical or quantitative variables stratified by a grouping variable. These plots are traditional distribution plots, used in any field involving statistical analyses.
+
+Additional to the plotting functionality, you can optionally request pairwise statistical testing to be performed (with or without multiple testing correction) and significant associations annotated in the plots. Statistical testing is performed via Fisher's exact test (`fisher.test`) or Chi-squared test (`chisq.test`) for categorical variables (i.e., those handled by `stratified_barplot`) and Welch's t-test (`t.test`) or Wilcoxon rank-sum test (`wilcox.test`) for quantitative variables (i.e., those handled by `stratified_violin_boxplot`).
+
+#### Stratified Bar Plots {#sec-stratified-barplot}
+
+To demonstrate the `stratified_barplot` function, lets visualize the distributions of self-reported race within each of the cancer types we've been looking at. Recall earlier that there were significantly more White patients in the rectal adenocarcinoma group compared to the colon adenocarcinoma group, which was more diverse.
+
+See @fig-1 for the result.
+
+```{r}
+#| label: plot-1
+
+# Define grouping variable
+groups = "name"
+
+# Define column of interest
+column = "race"
+
+# Perform plotting
+g = stratified_barplot(
+  test_data, 
+  groups, 
+  column,
+  xlab = "Cancer Type",
+  legendlab = "Patient Race",
+  test = "fisher.test",
+  alpha = 0.05,
+  save = TRUE,
+  figwidth = 2000, # The units of the width and height are in pixels
+  figheight = 1500,
+  out_path = "example_output/figure1.jpg"
+)
+```
+
+![Distribution of self-reported race among patients with colon and rectal adenocarcinoma](example_output/figure1.jpg){#fig-1}
+
+Indeed we see the enrichment of self-reported White patients in the rectal adenocarcinoma group and that the overall racial distribution between the two groups is significantly different (P=0.003). From statistical testing previously, we know this is due to the enrichment of White patients in the rectal adenocarcinoma group.
+
+:::{.callout-tip}
+
+The text size of plots have been left at the `ggplot2` default since it's difficult to try and calculate the most effective text size on the front end. If text is too small or too large, play around with the `figwidth` and `figheight` parameters to change the size of the exported image, which will influence how well the text fits.
+
+:::
+
+Now lets visualize the relationship between cancer type and different gene expression levels of PD-L1 (another significant association we observed earlier).
+
+See @fig-2 for the result.
+
+```{r}
+#| label: plot-2
+
+# Define grouping variable
+groups = "pdl1_gex"
+
+# Define column of interest
+column = "name"
+
+# Perform plotting
+g = stratified_barplot(
+  test_data, 
+  groups, 
+  column,
+  xlab = "PD-L1 Gene Expression Levels",
+  legendlab = "Cancer Type",
+  test = "fisher.test",
+  alpha = 0.05,
+  save = TRUE,
+  figwidth = 2000,
+  figheight = 1500,
+  out_path = "example_output/figure2.jpg"
+)
+```
+
+![Distribution of colon and rectal adenocarcinoma stratified by PD-L1 gene expression level](example_output/figure2.jpg){#fig-2}
+
+Again we see tumors with very high PD-L1 gene expression had significantly different distributions of the two cancer types compared to other groups, mainly tumors with low or moderate PD-L1 gene expression. 
+
+Because both variables being visualized by the `stratified_barplot` function are categorical, we can switch out the grouping variable and target variable to pivot the plot and look at the data from the alternate end.
+
+See @fig-3 for the results.
+
+```{r}
+#| label: plot-3
+
+# Define grouping variable
+groups = "name"
+
+# Define column of interest
+column = "pdl1_gex"
+
+# Perform plotting
+g = stratified_barplot(
+  test_data, 
+  groups, 
+  column,
+  xlab = "Cancer Type",
+  legendlab = "PD-L1 Gene Expression Level",
+  test = "fisher.test",
+  alpha = 0.05,
+  save = TRUE,
+  figwidth = 2000,
+  figheight = 1500,
+  out_path = "example_output/figure3.jpg"
+)
+```
+
+![Distribution of PD-L1 gene expression level in colon and rectal adenocarcinoma](example_output/figure3.jpg){#fig-3}
+
+:::{.callout-caution}
+
+Be wary with how many columns are being plotted when using `stratified_barplot`. Similar to the `stratified_stat_table` function, there is nothing in the code (yet) that hinders you from specifying variables with any number of groups, but I again would caution not to specify a grouping variable with more than 3 or 4 groups. The `longtail_plot` or `composition_barplot` functions handle many groups much more efficiently. See section [Specialty Plots](#sec-specialty-plots) for more on those.
+
+:::
+
+#### Stratified Violin-Boxplots {#sec-stratified-violin-boxplot}
+
+
+### Specialty Plots {#sec-specialty-plots}
+
+
+#### Composition Barplots {#sec-composition-barplot}
+
+
+#### Longtail Plots {#sec-longtail-plot}
+
+
+#### Volcano Plots {#sec-volcano-plot}
+
+
+# R Session {#sec-r-session}
+
+```{r}
+#| label: r-session
+#| echo: false
+sessionInfo()
+```

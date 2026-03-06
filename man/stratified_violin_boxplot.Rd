@@ -2,40 +2,67 @@
 % Please edit documentation in R/stratified_violin_boxplot.R
 \name{stratified_violin_boxplot}
 \alias{stratified_violin_boxplot}
-\title{Plot a Stratified Violin-Boxplot Using Plotly}
+\title{Plot a stratified violin-boxplot with or without pairwise statistical testing}
 \usage{
 stratified_violin_boxplot(
-  data,
-  var,
-  strata,
+  df,
+  groups,
+  column,
+  subgroups,
   ylab = NULL,
   xlab = NULL,
-  test = c("t.test", "wilcox.test"),
-  alpha = 0.05
+  legendlab = NULL,
+  colors = NULL,
+  test = "wilcox.test",
+  alpha = 0.05,
+  save = FALSE,
+  figwidth = 5,
+  figheight = 5,
+  out_path = "stratified_barplot"
 )
 }
 \arguments{
-\item{data}{Dataframe containing the variables of interest.}
+\item{df}{Dataframe containing the grouping variable and numeric variable of interest.}
 
-\item{var}{Name of the numerical variable in \code{data} to be plotted.}
+\item{groups}{Name of the categorical variable in \code{df} to group by.}
 
-\item{strata}{Name of the categorical variable in \code{data} to group by.}
+\item{column}{Name of the numeric variable in \code{df} to be plotted.}
 
-\item{ylab}{Title for the y-axis (default is to use name given to \code{var}).}
+\item{subgroups}{Name of a categorical variable \code{df} to further subgroup each group by.
+(default is to not subgroup)}
 
-\item{xlab}{Title for the x-axis (default is to use name given to \code{strata}).}
+\item{ylab}{Title for the y-axis. (default is to use name given to \code{column})}
 
-\item{test}{Which test to use for group comparison: "t.test" or "wilcox.test"
-(default: "t.test").}
+\item{xlab}{Title for the x-axis. (default is to use name given to \code{groups})}
 
-\item{alpha}{P-value threshold for significance (default: 0.05).}
+\item{legendlab}{Title for the legend. Only applicable if \code{subgroups} is specified.
+(default is to use name given to \code{subgroups})}
+
+\item{colors}{Vector of R recognized color strings the length of the number of groups in
+the variable provided to \code{subgroups}. Only applicable if \code{subgroups} is
+specified.}
+
+\item{test}{Which test to use for group comparison: \code{t.test}, \code{wilcox.test}, or \code{NULL}
+(no testing performed). (default: \code{wilcox.test})}
+
+\item{alpha}{P-value threshold for significance. (default: 0.05)}
+
+\item{save}{Whether to save the image to file. (default: FALSE)}
+
+\item{figwidth}{Width of the output image file in pixels (\code{px}).}
+
+\item{figheight}{Height of the output image file in pixels (\code{px}).}
+
+\item{out_path}{File path for the output image file. Existing files at this path are overwritten.
+Whatever extension included in the image file name (e.g., jpg, png, pdf) will
+be the format that is outputted.}
 }
 \value{
-A \code{plotly} figure object.
+A \code{ggplot2} figure object. If export is \code{TRUE}, also exports the image to file.
 }
 \description{
 This function creates a violin-box plot with data points and means/stds for a
-numeric variable grouped by a specified strata variable. It also can test for
+numeric variable grouped by a specified groups variable. It also can test for
 significant differences between groups using a t-test or Wilcoxon rank-sum
 test, annotating significant comparisons in the plot.
 }

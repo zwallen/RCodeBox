@@ -1,311 +1,296 @@
-#' Plot a Stratified Barplot Using Plotly
+#' Plot a stratified barplot with or without pairwise statistical testing
 #'
 #' @description
 #' This function creates a bar plot reporting frequencies of a categorical
-#' variable grouped by a specified strata variable. It can also test for
-#' significant differences between groups using Fisher's exact test or
-#' Chi-squared test, annotating significant comparisons in the plot.
+#' variable grouped by a specified grouping variable. It can also test for
+#' significant differences between groups using Fisher's exact test or Chi-squared
+#' test, annotating significant comparisons in the plot.
 #'
-#' @param data
-#' Dataframe containing the variables of interest.
-#' @param var
-#' Name of the categorical variable in `data` to be plotted.
-#' @param strata
-#' Name of the categorical variable in `data` to group by.
+#' @param df
+#' Dataframe containing the grouping variable and categorical variable of interest.
+#' @param groups
+#' Name of the categorical variable in `df` to group by.
+#' @param column
+#' Name of the categorical variable in `df` to be plotted.
 #' @param ylab
-#' Title for the y-axis (default is to use `Frequency (%)`).
+#' Title for the y-axis. (default is to use `Frequency (%)`)
 #' @param xlab
-#' Title for the x-axis (default is to use name given to `strata`).
+#' Title for the x-axis. (default is to use name given to `groups`)
 #' @param legendlab
-#' Title for the legend (default is to use name given to `var`).
+#' Title for the legend. (default is to use name given to `column`)
 #' @param colors
 #' Vector of R recognized color strings the length of the number of groups in
-#' the variable provided to `var` (vector).
+#' the variable provided to `column`.
 #' @param test
-#' Which test to use for group comparison: `fisher.test` or `chisq.test`
-#' (default: `fisher.test`).
+#' Which test to use for group comparison: `fisher.test`, `chisq.test`, or `NULL`
+#' (no testing performed). (default: `fisher.test`)
+#' @param multi_test_correct
+#' Which method to use for multiple testing correction. Can specify any methods
+#' that are accepted by the `p.adjust` function. (default is to perform no
+#' correction)
 #' @param alpha
-#' P-value threshold for significance (default: 0.05).
+#' P-value threshold for significance. (default: 0.05)
+#' @param save
+#' Whether to save the image to file. (default: FALSE)
+#' @param figwidth
+#' Width of the output image file in pixels (`px`).
+#' @param figheight
+#' Height of the output image file in pixels (`px`).
+#' @param out_path
+#' File path for the output image file. Existing files at this path are overwritten.
+#' Whatever extension included in the image file name (e.g., jpg, png, pdf) will
+#' be the format that is outputted.
 #'
 #' @return
-#' A `plotly` figure object.
+#' A `ggplot2` figure object. If export is `TRUE`, also exports the image to file.
 #'
-#' @import plotly
+#' @import ggplot2
+#' @importFrom stringr str_split str_to_title
+#' @importFrom ggsignif geom_signif
 #' @importFrom stats fisher.test chisq.test
 #' @importFrom utils combn
 #' @export
 #'
-stratified_barplot <- function(
-  data,
-  var,
-  strata,
+stratified_barplot = function(
+  df,
+  groups,
+  column,
   ylab = NULL,
   xlab = NULL,
   legendlab = NULL,
   colors = NULL,
-  test = c("fisher.test", "chisq.test"),
-  alpha = 0.05
+  test = "fisher.test",
+  multi_test_correct = NULL,
+  alpha = 0.05,
+  save = FALSE,
+  figwidth = 5,
+  figheight = 5,
+  out_path = "stratified_barplot"
 ) {
-  if (!requireNamespace("plotly", quietly = TRUE)) {
-    stop("Package 'plotly' is required.")
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("Package 'ggplot2' is required.")
   }
-  test <- match.arg(test)
-
-  # Prepare data
-  x <- data[[strata]]
-  y <- data[[var]]
-
-  # Get group names and number of groups
-  group_names <- unique(as.character(x))
-  n_groups <- length(group_names)
-
-  # Define color vector for plotting
-  if (!is.null(colors)) {
-    col_vec <- colors[seq_along((unique(y)))]
-  } else {
-    col_vec <- RColorBrewer::brewer.pal(length(unique(y)), "Greys")
+  if (!requireNamespace("stringr", quietly = TRUE)) {
+    stop("Package 'stringr' is required.")
+  }
+  if (!requireNamespace("ggsignif", quietly = TRUE)) {
+    stop("Package 'ggsignif' is required.")
   }
 
-  # Get contingency table of counts
-  counts <- table(x, y)
-  percents <- prop.table(counts, 1) * 100
-
-  # Create blank figure
-  fig <- plot_ly()
-
-  # Add an "all cases" bar
-  fig <- add_trace(
-    fig,
-    type = "bar",
-    x = "All cases",
-    y = colSums(counts) / sum(counts) * 100,
-    name = "All",
-    marker = list(
-      color = col_vec,
-      line = list(color = "black", width = 2)
-    ),
-    width = 0.75,
-    text = paste0(
-      round(colSums(counts) / sum(counts) * 100, 1),
-      "%\nN=",
-      colSums(counts)
-    ),
-    textposition = "auto",
-    textfont = list(size = 60 / (n_groups + 1)),
-    showlegend = FALSE,
-    hoverinfo = "skip",
-    cliponaxis = FALSE
-  )
-
-  # Create plots for each group
-  for (i in seq_along(colnames(counts))) {
-    y_i <- colnames(counts)[i]
-
-    # Add bar plot
-    fig <- add_trace(
-      fig,
-      type = "bar",
-      x = rownames(counts),
-      y = percents[, y_i],
-      name = y_i,
-      marker = list(
-        color = col_vec[i],
-        line = list(color = "black", width = 2)
-      ),
-      width = 0.75,
-      text = ifelse(
-        counts[, y_i] > 0,
-        paste0(round(percents[, y_i], 1), "%\nN=", counts[, y_i]),
-        ""
-      ),
-      textposition = "auto",
-      textfont = list(size = 60 / (n_groups + 1)),
-      hoverinfo = "skip",
-      cliponaxis = FALSE
-    )
+  # Perform a few data checks
+  if (!(groups %in% colnames(df))) {
+    stop("ERROR: groups variable name was not found in column names of df")
+  }
+  if (!(column %in% colnames(df))) {
+    stop("ERROR: column variable name was not found in df")
+  }
+  if (!(is.factor(df[[groups]]) | is.character(df[[groups]]))) {
+    stop("ERROR: groups variable is not a factor or character variable")
+  }
+  if (!(is.factor(df[[column]]) | is.character(df[[column]]))) {
+    stop("ERROR: column variable is not a factor or character variable")
   }
 
-  # Statistical testing and annotation
-  if (n_groups == 2) {
-    # Get data for testing
-    group1 <- group_names[1]
-    group2 <- group_names[2]
-    tbl <- counts[c(group1, group2), , drop = FALSE]
+  #### Not implemented yet, but should put a check in for how many bars in plot
+  #### and give error if there are too many
+  #n_bars = length(unique(na.omit(df[[column]]))) *
+  #  (length(unique(na.omit(df[[groups]]))) + 1)
+  #if (n_bars > ...) {
+  #  stop(paste0(
+  #    "ERROR: number of columns in plot will be ",
+  #    n_bars,
+  #    ", which is too many to include in this type of plot"
+  #  ))
+  #}
 
-    # Perform testing with requested test
-    if (test == "fisher.test") {
-      pval <- tryCatch(fisher.test(tbl)$p.value, error = function(e) NA)
-    } else {
-      pval <- tryCatch(chisq.test(tbl)$p.value, error = function(e) NA)
-    }
+  # Define function for pairwise statistical testing
+  if (test == "fisher.test") {
+    pair.test = function(x) fisher.test(x)
+  }
+  if (test == "chisq.test") {
+    pair.test = function(x) chisq.test(x)
+  }
 
-    # Generate significance label for significant associations
-    signif_label <- if (!is.na(pval) && pval < alpha) {
-      if (pval < 0.001) {
-        "***"
-      } else if (pval < 0.01) {
-        "**"
-      } else if (pval < 0.05) {
-        "*"
-      } else {
-        "ns"
-      }
-    } else {
-      "ns"
-    }
-
-    # Add annotation lines and text if significant
-    if (signif_label != "ns") {
-      y_annot <- 100 +
-        0.1 * (max(percents, na.rm = TRUE) - min(percents, na.rm = TRUE))
-
-      fig <- add_trace(
-        fig,
-        type = "scatter",
-        mode = "lines",
-        name = "",
-        x = c(group1, group1, group2, group2),
-        y = c(y_annot - 0.01, y_annot, y_annot, y_annot - 0.01),
-        line = list(color = "black", width = 2),
-        showlegend = FALSE,
-        hovertemplate = paste0(
-          "p=",
-          format(pval, scientific = TRUE, digits = 2)
-        )
-      )
-
-      fig <- add_annotations(
-        fig,
-        x = 1.5,
-        y = y_annot +
-          0.01 * (max(percents, na.rm = TRUE) - min(percents, na.rm = TRUE)),
-        text = signif_label,
-        showarrow = FALSE,
-        font = list(size = 16, color = "black"),
-        align = "center"
-      )
-    }
-  } else if (n_groups > 2) {
-    # Get combination of groups and number of comparisons
-    combn_idx <- combn(seq_along(group_names), 2)
-    y_range <- range(percents, na.rm = TRUE)
-    y_span <- y_range[2] - y_range[1]
-    n_comparisons <- ncol(combn_idx)
-
-    # Perform pairwise testing
-    for (j in seq_len(n_comparisons)) {
-      # Get data for testing
-      idx1 <- combn_idx[1, j]
-      idx2 <- combn_idx[2, j]
-      group1 <- group_names[idx1]
-      group2 <- group_names[idx2]
-      tbl <- counts[c(group1, group2), , drop = FALSE]
-
-      # Perform testing with requested test
-      if (test == "fisher.test") {
-        pval <- tryCatch(fisher.test(tbl)$p.value, error = function(e) NA)
-      } else {
-        pval <- tryCatch(chisq.test(tbl)$p.value, error = function(e) NA)
-      }
-
-      # Generate significance label for significant associations
-      signif_label <- if (!is.na(pval) && pval < alpha) {
-        if (pval < 0.001) {
-          "***"
-        } else if (pval < 0.01) {
-          "**"
-        } else if (pval < 0.05) {
-          "*"
-        } else {
-          "ns"
-        }
-      } else {
-        "ns"
-      }
-
-      # Add annotation lines and text if significant
-      if (signif_label != "ns") {
-        # Stagger annotation heights
-        y_annot <- 100 + (0.3 + 0.06 * (j - 1)) * y_span
-
-        # Calculate where to position annotations
-        tickvals <- c("All cases", n_groups)
-        pos1 <- match(group1, tickvals) - 1
-        pos2 <- match(group2, tickvals) - 1
-        x_mid <- (pos1 + pos2) / 2
-
-        fig <- add_trace(
-          fig,
-          type = "scatter",
-          mode = "lines",
-          name = "",
-          x = c(group1, group1, group2, group2),
-          y = c(y_annot - 0.01, y_annot, y_annot, y_annot - 0.01),
-          line = list(color = "black", width = 2),
-          showlegend = FALSE,
-          hovertemplate = paste0(
-            "p=",
-            format(pval, scientific = TRUE, digits = 2)
+  # Create a small function to capitalize categories more aesthetically
+  format_string = function(x) {
+    nocaps = "^and$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$|^Mean\u00B1SD$"
+    alwayscaps = "^II$|^III$|^IV$|^V$|^VI$|^VII$|^VIII$|^VIIII$|^X$"
+    paste(
+      sapply(unlist(stringr::str_split(x, " ")), function(y) {
+        ifelse(
+          grepl(nocaps, y, ignore.case = TRUE),
+          y,
+          ifelse(
+            grepl(alwayscaps, y, ignore.case = TRUE),
+            toupper(y),
+            stringr::str_to_title(y)
           )
         )
+      }),
+      collapse = " "
+    )
+  }
 
-        fig <- add_annotations(
-          fig,
-          x = x_mid,
-          xref = "x",
-          y = y_annot + 0.01 * y_span,
-          yref = "y",
-          text = signif_label,
-          showarrow = FALSE,
-          font = list(size = 16, color = "black"),
-          align = "center"
+  # Calculate counts and frequencies for groups
+  n = table(df[[column]], df[[groups]])
+  perc = apply(n, 2, function(x) round(x / sum(x) * 100, 1))
+  n_perc = data.frame(matrix(
+    paste0(n, " (", perc, "%)"),
+    nrow = nrow(n),
+    ncol = ncol(n)
+  ))
+  plot_df = data.frame(
+    data.frame(n),
+    Perc = as.vector(perc),
+    Label = unlist(as.vector(n_perc))
+  )
+
+  # Perform pairwise statistical testing
+  plot_annot = data.frame()
+  for (group1 in colnames(n)) {
+    for (group2 in colnames(n)) {
+      if (
+        group1 != group2 &
+          !(paste(group1, group2) %in%
+            paste(plot_annot[["Group1"]], plot_annot[["Group2"]])) &
+          !(paste(group1, group2) %in%
+            paste(plot_annot[["Group2"]], plot_annot[["Group1"]]))
+      ) {
+        res = pair.test(n[, c(group1, group2)])
+        plot_annot = rbind(
+          plot_annot,
+          data.frame(
+            Group1 = group1,
+            Group2 = group2,
+            p = res$p.value
+          )
         )
       }
     }
   }
 
-  # Adjust labels and formatting
-  fig <- layout(
-    fig,
-    barmode = "stack",
-    title = NULL,
-    margin = list(t = 20),
-    xaxis = list(
-      title = ifelse(!is.null(xlab), xlab, strata),
-      tickmode = "array",
-      tickvals = c("All cases", rownames(counts)),
-      ticktext = c("All cases", rownames(counts)),
-      ticks = "outside",
-      tickcolor = "black",
-      showline = TRUE,
-      linecolor = "black",
-      linewidth = 2,
-      zeroline = FALSE,
-      mirror = FALSE,
-      showgrid = FALSE
-    ),
-    yaxis = list(
-      title = ifelse(!is.null(ylab), ylab, "Frequency (%)"),
-      ticks = "outside",
-      tickcolor = "black",
-      tickvals = seq(0, 100, by = 20),
-      ticktext = seq(0, 100, by = 20),
-      showline = TRUE,
-      linecolor = "black",
-      linewidth = 2,
-      zeroline = FALSE,
-      mirror = FALSE,
-      showgrid = FALSE
-    ),
-    font = list(
-      color = "black",
-      size = 16
-    ),
-    plot_bgcolor = "white",
-    legend = list(
-      title = list(text = ifelse(!is.null(legendlab), legendlab, var))
+  # Perform multiple testing correction if specified
+  if (!is.null(multi_test_correct)) {
+    plot_annot[["p"]] = p.adjust(
+      plot_annot[["p"]],
+      method = multi_test_correct
     )
+  }
+
+  # Calculate counts and frequencies for all cases and add to plot data
+  n = table(df[[column]])
+  perc = round(n / sum(n) * 100, 1)
+  n_perc = paste0(n, " (", perc, "%)")
+  plot_df = rbind(
+    data.frame(
+      Var1 = names(n),
+      Var2 = "All Cases",
+      Freq = as.vector(n),
+      Perc = as.vector(perc),
+      Label = n_perc
+    ),
+    plot_df
   )
 
-  return(fig)
+  # Make sure levels of grouping variable and column are the same as input
+  plot_df[["Var1"]] = factor(
+    plot_df[["Var1"]],
+    levels = names(table(df[[column]]))
+  )
+  plot_df[["Var2"]] = factor(
+    plot_df[["Var2"]],
+    levels = c("All Cases", names(table(df[[groups]])))
+  )
+
+  # Create color vector for plotting if one was not provided
+  if (is.null(colors)) {
+    colors = RColorBrewer::brewer.pal(
+      length(unique(plot_df[["Var1"]])),
+      "Set2"
+    )
+  }
+
+  # Perform plotting
+  ymax = max(plot_df[["Perc"]] + nchar(plot_df[["Label"]]))
+  g = ggplot2::ggplot(plot_df, ggplot2::aes(y = Perc, x = Var2, fill = Var1)) +
+    ggplot2::geom_col(
+      stat = "identity",
+      position = "dodge",
+      color = "black"
+    ) +
+    ggplot2::geom_label(
+      ggplot2::aes(label = Label, group = Var1),
+      position = ggplot2::position_dodge(0.9),
+      hjust = -0.1,
+      angle = 90,
+      fill = "white",
+      border.color = "white",
+      alpha = 0.75
+    ) +
+    ggplot2::scale_y_continuous(breaks = seq(0, 100, 10)) +
+    ggplot2::scale_x_discrete(
+      labels = stringr::str_wrap(
+        sapply(unique(plot_df[["Var2"]]), function(x) format_string(x)),
+        width = 15
+      )
+    ) +
+    ggplot2::scale_fill_manual(
+      labels = stringr::str_wrap(
+        sapply(unique(plot_df[["Var1"]]), function(x) {
+          format_string(x)
+        }),
+        width = 20
+      ),
+      values = colors
+    ) +
+    ggplot2::coord_cartesian(ylim = c(0, ymax), clip = "off") +
+    ggplot2::labs(
+      x = ifelse(is.null(xlab), format_string(groups), xlab),
+      y = ifelse(is.null(ylab), "Frequency (%)", ylab),
+      fill = stringr::str_wrap(
+        ifelse(is.null(legendlab), format_string(column), legendlab),
+        width = 15
+      )
+    ) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(
+      panel.border = ggplot2::element_rect(color = "black", linewidth = 0.5)
+    )
+
+  # Add statistical testing annotations if requested
+  if (!is.null(test) & nrow(plot_annot) > 0) {
+    plot_annot = plot_annot[plot_annot[["p"]] < alpha, ]
+    if (nrow(plot_annot) > 0) {
+      y_position = sapply(1:nrow(plot_annot), function(x) {
+        ymax + (x * (ymax / 10))
+      })
+      g = g +
+        ggsignif::geom_signif(
+          inherit.aes = FALSE,
+          data = plot_annot,
+          ggplot2::aes(
+            xmin = Group1,
+            xmax = Group2,
+            y_position = y_position,
+            annotations = paste0("p=", formatC(p, digits = 1))
+          ),
+          manual = TRUE
+        ) +
+        ggplot2::coord_cartesian(ylim = c(0, max(y_position)), clip = "off")
+      g$layers = g$layers[c("geom_col", "geom_signif", "geom_label")]
+    }
+  }
+
+  # Save plot to file if requested
+  if (save) {
+    ggplot2::ggsave(
+      out_path,
+      g,
+      width = figwidth,
+      height = figheight,
+      units = "px"
+    )
+  }
+
+  return(g)
 }

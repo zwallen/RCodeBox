@@ -8,14 +8,16 @@ Description:
     computational biology and data science projects.
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
-LazyDataCompression: xz
+LazyData: false
 Imports:
     openxlsx,
     kableExtra,
     stringr,
     RColorBrewer,
+    ggplot2,
+    ggsignif,
     plotly,
+    scales,
     logistf,
     biomaRt,
     GenomeInfoDb,

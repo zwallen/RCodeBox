@@ -1,51 +1,78 @@
-#' Plot a Stratified Violin-Boxplot Using Plotly
+#' Plot a stratified violin-boxplot with or without pairwise statistical testing
 #'
 #' @description
 #' This function creates a violin-box plot with data points and means/stds for a
-#' numeric variable grouped by a specified strata variable. It also can test for
+#' numeric variable grouped by a specified groups variable. It also can test for
 #' significant differences between groups using a t-test or Wilcoxon rank-sum
 #' test, annotating significant comparisons in the plot.
 #'
-#' @param data
-#' Dataframe containing the variables of interest.
-#' @param var
-#' Name of the numerical variable in `data` to be plotted.
-#' @param strata
-#' Name of the categorical variable in `data` to group by.
+#' @param df
+#' Dataframe containing the grouping variable and numeric variable of interest.
+#' @param groups
+#' Name of the categorical variable in `df` to group by.
+#' @param column
+#' Name of the numeric variable in `df` to be plotted.
+#' @param subgroups
+#' Name of a categorical variable `df` to further subgroup each group by.
+#' (default is to not subgroup)
 #' @param ylab
-#' Title for the y-axis (default is to use name given to `var`).
+#' Title for the y-axis. (default is to use name given to `column`)
 #' @param xlab
-#' Title for the x-axis (default is to use name given to `strata`).
+#' Title for the x-axis. (default is to use name given to `groups`)
+#' @param legendlab
+#' Title for the legend. Only applicable if `subgroups` is specified. 
+#' (default is to use name given to `subgroups`)
+#' @param colors
+#' Vector of R recognized color strings the length of the number of groups in
+#' the variable provided to `subgroups`. Only applicable if `subgroups` is
+#' specified.
 #' @param test
-#' Which test to use for group comparison: "t.test" or "wilcox.test"
-#' (default: "t.test").
+#' Which test to use for group comparison: `t.test`, `wilcox.test`, or `NULL`
+#' (no testing performed). (default: `wilcox.test`)
 #' @param alpha
-#' P-value threshold for significance (default: 0.05).
+#' P-value threshold for significance. (default: 0.05)
+#' @param save
+#' Whether to save the image to file. (default: FALSE)
+#' @param figwidth
+#' Width of the output image file in pixels (`px`).
+#' @param figheight
+#' Height of the output image file in pixels (`px`).
+#' @param out_path
+#' File path for the output image file. Existing files at this path are overwritten.
+#' Whatever extension included in the image file name (e.g., jpg, png, pdf) will
+#' be the format that is outputted.
 #'
-#' @return A `plotly` figure object.
+#' @return
+#' A `ggplot2` figure object. If export is `TRUE`, also exports the image to file.
 #'
-#' @import plotly
-#' @importFrom stats runif sd t.test wilcox.test
+#' @import ggplot2
+#' @importFrom stats fisher.test chisq.test
 #' @importFrom utils combn
 #' @export
 #'
-stratified_violin_boxplot <- function(
-  data,
-  var,
-  strata,
+stratified_violin_boxplot = function(
+  df,
+  groups,
+  column,
+  subgroups,
   ylab = NULL,
   xlab = NULL,
-  test = c("t.test", "wilcox.test"),
-  alpha = 0.05
+  legendlab = NULL,
+  colors = NULL,
+  test = "wilcox.test",
+  alpha = 0.05,
+  save = FALSE,
+  figwidth = 5,
+  figheight = 5,
+  out_path = "stratified_barplot"
 ) {
-  if (!requireNamespace("plotly", quietly = TRUE)) {
-    stop("Package 'plotly' is required.")
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("Package 'ggplot2' is required.")
   }
-  test <- match.arg(test)
 
   # Prepare data
-  x <- data[[strata]]
-  y <- data[[var]]
+  x <- df[[groups]]
+  y <- df[[column]]
 
   # Get group names and number of groups
   group_names <- names(table(x))
@@ -111,14 +138,14 @@ stratified_violin_boxplot <- function(
       opacity = 0.75
     ),
     showlegend = FALSE,
-    text = if (sum(grepl("id", names(data))) > 0) {
-      id_col <- grep("id", names(data), value = TRUE)[1]
-      data[[id_col]][!is.na(y)]
+    text = if (sum(grepl("id", names(df))) > 0) {
+      id_col <- grep("id", names(df), value = TRUE)[1]
+      df[[id_col]][!is.na(y)]
     } else {
       NULL
     },
-    hovertemplate = if (sum(grepl("id", names(data))) > 0) {
-      id_col <- grep("id", names(data), value = TRUE)[1]
+    hovertemplate = if (sum(grepl("id", names(df))) > 0) {
+      id_col <- grep("id", names(df), value = TRUE)[1]
       paste0(id_col, ": %{text}<br>Value: %{y}<extra></extra>")
     } else {
       "Value: %{y}<extra></extra>"
@@ -206,14 +233,14 @@ stratified_violin_boxplot <- function(
         opacity = 0.75
       ),
       showlegend = FALSE,
-      text = if (sum(grepl("id", names(data))) > 0) {
-        id_col <- grep("id", names(data), value = TRUE)[1]
-        data[x == x_i, id_col]
+      text = if (sum(grepl("id", names(df))) > 0) {
+        id_col <- grep("id", names(df), value = TRUE)[1]
+        df[x == x_i, id_col]
       } else {
         NULL
       },
-      hovertemplate = if (sum(grepl("id", names(data))) > 0) {
-        id_col <- grep("id", names(data), value = TRUE)[1]
+      hovertemplate = if (sum(grepl("id", names(df))) > 0) {
+        id_col <- grep("id", names(df), value = TRUE)[1]
         paste0(id_col, ": %{text}<br>Value: %{y}<extra></extra>")
       } else {
         "Value: %{y}<extra></extra>"
@@ -384,7 +411,7 @@ stratified_violin_boxplot <- function(
     title = NULL,
     margin = list(t = 20),
     xaxis = list(
-      title = ifelse(!is.null(xlab), xlab, strata),
+      title = ifelse(!is.null(xlab), xlab, groups),
       tickmode = "array",
       tickvals = c(-1, 0:(length(group_names) - 1)),
       ticktext = c("All cases", group_names),
@@ -398,7 +425,7 @@ stratified_violin_boxplot <- function(
       showgrid = FALSE
     ),
     yaxis = list(
-      title = ifelse(!is.null(ylab), ylab, var),
+      title = ifelse(!is.null(ylab), ylab, column),
       ticks = "outside",
       tickcolor = "black",
       showline = TRUE,
