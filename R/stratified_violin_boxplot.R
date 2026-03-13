@@ -8,27 +8,22 @@
 #'
 #' @param df
 #' Dataframe containing the grouping variable and numeric variable of interest.
-#' @param groups
-#' Name of the categorical variable in `df` to group by.
 #' @param column
 #' Name of the numeric variable in `df` to be plotted.
-#' @param subgroups
-#' Name of a categorical variable `df` to further subgroup each group by.
-#' (default is to not subgroup)
+#' @param groups
+#' Name of the categorical variable in `df` to group by. If not supplied, then
+#' a non-stratified boxplot will be plotted.
 #' @param ylab
 #' Title for the y-axis. (default is to use name given to `column`)
 #' @param xlab
 #' Title for the x-axis. (default is to use name given to `groups`)
-#' @param legendlab
-#' Title for the legend. Only applicable if `subgroups` is specified. 
-#' (default is to use name given to `subgroups`)
-#' @param colors
-#' Vector of R recognized color strings the length of the number of groups in
-#' the variable provided to `subgroups`. Only applicable if `subgroups` is
-#' specified.
 #' @param test
 #' Which test to use for group comparison: `t.test`, `wilcox.test`, or `NULL`
 #' (no testing performed). (default: `wilcox.test`)
+#' @param multi_test_correct
+#' Which method to use for multiple testing correction. Can specify any methods
+#' that are accepted by the `p.adjust` function. (default is to perform no
+#' correction)
 #' @param alpha
 #' P-value threshold for significance. (default: 0.05)
 #' @param save
@@ -43,404 +38,287 @@
 #' be the format that is outputted.
 #'
 #' @return
-#' A `ggplot2` figure object. If export is `TRUE`, also exports the image to file.
+#' A `ggplot2` figure object. If save is `TRUE`, also exports the image to file.
 #'
 #' @import ggplot2
-#' @importFrom stats fisher.test chisq.test
-#' @importFrom utils combn
+#' @importFrom stringr str_split str_to_title
+#' @importFrom ggsignif geom_signif
+#' @importFrom stats t.test wilcox.test p.adjust
 #' @export
 #'
 stratified_violin_boxplot = function(
   df,
-  groups,
   column,
-  subgroups,
+  groups = NULL,
   ylab = NULL,
   xlab = NULL,
-  legendlab = NULL,
-  colors = NULL,
-  test = "wilcox.test",
+  test = "fisher.test",
+  multi_test_correct = NULL,
   alpha = 0.05,
   save = FALSE,
-  figwidth = 5,
-  figheight = 5,
-  out_path = "stratified_barplot"
+  figwidth = 1000,
+  figheight = 1000,
+  out_path = "stratified_violin_boxplot.jpg"
 ) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("Package 'ggplot2' is required.")
   }
-
-  # Prepare data
-  x <- df[[groups]]
-  y <- df[[column]]
-
-  # Get group names and number of groups
-  group_names <- names(table(x))
-  n_groups <- length(group_names)
-
-  # Calculate means and standard deviations for each group
-  means <- tapply(y, x, mean, na.rm = TRUE)
-  stds <- tapply(y, x, sd, na.rm = TRUE)
-
-  # Calculate mean and standard deviation for all cases
-  mean_all <- mean(y, na.rm = TRUE)
-  std_all <- sd(y, na.rm = TRUE)
-
-  # Create blank figure
-  fig <- plot_ly()
-
-  # Add "all cases" plot
-  y_all <- y[!is.na(y)]
-  # Violin
-  fig <- add_trace(
-    fig,
-    type = "violin",
-    x = rep(-1, length(y_all)),
-    y = y_all,
-    name = "",
-    box = list(visible = FALSE),
-    meanline = list(visible = FALSE),
-    points = FALSE,
-    line = list(color = "black"),
-    fillcolor = "lightgrey",
-    opacity = 1,
-    width = 0.75,
-    showlegend = FALSE,
-    spanmode = "hard"
-  )
-  # Boxplot
-  fig <- add_trace(
-    fig,
-    type = "box",
-    x = rep(-1, length(y_all)),
-    y = y_all,
-    name = "",
-    line = list(color = "black"),
-    fillcolor = "white",
-    opacity = 1,
-    width = 0.3,
-    whiskerwidth = 0,
-    showlegend = FALSE,
-    boxpoints = FALSE
-  )
-  # Points
-  fig <- add_trace(
-    fig,
-    type = "scatter",
-    mode = "markers",
-    x = -1 + runif(length(y_all), -0.05, 0.05),
-    y = y_all,
-    name = "",
-    marker = list(
-      color = "black",
-      size = 12,
-      symbol = "circle",
-      opacity = 0.75
-    ),
-    showlegend = FALSE,
-    text = if (sum(grepl("id", names(df))) > 0) {
-      id_col <- grep("id", names(df), value = TRUE)[1]
-      df[[id_col]][!is.na(y)]
-    } else {
-      NULL
-    },
-    hovertemplate = if (sum(grepl("id", names(df))) > 0) {
-      id_col <- grep("id", names(df), value = TRUE)[1]
-      paste0(id_col, ": %{text}<br>Value: %{y}<extra></extra>")
-    } else {
-      "Value: %{y}<extra></extra>"
-    }
-  )
-  # Mean + error bar
-  fig <- add_trace(
-    fig,
-    type = "scatter",
-    mode = "markers",
-    x = -1,
-    y = mean_all,
-    name = "",
-    marker = list(color = "red", size = 12, symbol = "circle"),
-    error_y = list(
-      type = "data",
-      array = std_all,
-      color = "red",
-      thickness = 3
-    ),
-    showlegend = FALSE,
-    hovertemplate = paste0(
-      "Mean: ",
-      round(mean_all, 1),
-      "<br>Std Dev: ",
-      round(std_all, 1),
-      "<extra></extra>"
-    )
-  )
-
-  # Create plots for each group
-  for (i in seq_along(group_names)) {
-    x_i <- group_names[i]
-    y_i <- y[x == x_i]
-
-    # Add violin
-    fig <- add_trace(
-      fig,
-      type = "violin",
-      x = rep(i - 1, length(y_i)),
-      y = y_i,
-      name = "",
-      box = list(visible = FALSE),
-      meanline = list(visible = FALSE),
-      points = FALSE,
-      line = list(color = "black"),
-      fillcolor = "lightgrey",
-      opacity = 1,
-      width = 0.75,
-      showlegend = FALSE,
-      spanmode = "hard"
-    )
-
-    # Add boxplot
-    fig <- add_trace(
-      fig,
-      type = "box",
-      x = rep(i - 1, length(y_i)),
-      y = y_i,
-      name = "",
-      line = list(color = "black"),
-      fillcolor = "white",
-      opacity = 1,
-      width = 0.3,
-      whiskerwidth = 0,
-      showlegend = FALSE,
-      boxpoints = FALSE
-    )
-
-    # Add individual points with jitter
-    set.seed(1234)
-    jitter_strength <- 0.05
-    jitter <- runif(length(y_i), -jitter_strength, jitter_strength)
-    fig <- add_trace(
-      fig,
-      type = "scatter",
-      mode = "markers",
-      x = (i - 1) + jitter,
-      y = y_i,
-      name = "",
-      marker = list(
-        color = "black",
-        size = 12,
-        symbol = "circle",
-        opacity = 0.75
-      ),
-      showlegend = FALSE,
-      text = if (sum(grepl("id", names(df))) > 0) {
-        id_col <- grep("id", names(df), value = TRUE)[1]
-        df[x == x_i, id_col]
-      } else {
-        NULL
-      },
-      hovertemplate = if (sum(grepl("id", names(df))) > 0) {
-        id_col <- grep("id", names(df), value = TRUE)[1]
-        paste0(id_col, ": %{text}<br>Value: %{y}<extra></extra>")
-      } else {
-        "Value: %{y}<extra></extra>"
-      }
-    )
-
-    # Add mean points and error bars
-    mean_val <- means[x_i]
-    std_val <- stds[x_i]
-    fig <- add_trace(
-      fig,
-      type = "scatter",
-      mode = "markers",
-      x = i - 1,
-      y = mean_val,
-      name = "",
-      marker = list(color = "red", size = 12, symbol = "circle"),
-      error_y = list(
-        type = "data",
-        array = std_val,
-        color = "red",
-        thickness = 3
-      ),
-      showlegend = FALSE,
-      hovertemplate = paste0(
-        "Mean: ",
-        round(mean_val, 1),
-        "<br>Std Dev: ",
-        round(std_val, 1),
-        "<extra></extra>"
-      )
-    )
+  if (!requireNamespace("stringr", quietly = TRUE)) {
+    stop("Package 'stringr' is required.")
+  }
+  if (!requireNamespace("ggsignif", quietly = TRUE)) {
+    stop("Package 'ggsignif' is required.")
   }
 
-  # Statistical testing and annotation
-  if (n_groups == 2) {
-    # Get data for testing
-    group1 <- group_names[1]
-    group2 <- group_names[2]
-    y1 <- y[x == group1]
-    y2 <- y[x == group2]
-
-    # Perform testing with requested test
-    if (test == "t.test") {
-      pval <- tryCatch(t.test(y1, y2)$p.value, error = function(e) NA)
-    } else {
-      pval <- tryCatch(wilcox.test(y1, y2)$p.value, error = function(e) NA)
+  # Perform a few data checks
+  if (!(column %in% colnames(df))) {
+    stop("ERROR: column variable name was not found in df")
+  }
+  if (!is.numeric(df[[column]])) {
+    stop("ERROR: column variable is not a numeric variable")
+  }
+  if (!is.null(groups)) {
+    if (!(groups %in% colnames(df))) {
+      stop("ERROR: groups variable name was not found in column names of df")
     }
-
-    # Generate significance label for significant associations
-    signif_label <- if (!is.na(pval) && pval < alpha) {
-      if (pval < 0.001) {
-        "***"
-      } else if (pval < 0.01) {
-        "**"
-      } else if (pval < 0.05) {
-        "*"
-      } else {
-        "ns"
-      }
-    } else {
-      "ns"
+    if (!(is.factor(df[[groups]]) | is.character(df[[groups]]))) {
+      stop("ERROR: groups variable is not a factor or character variable")
     }
+  }
 
-    # Add annotation line and text if significant
-    if (signif_label != "ns") {
-      y_max <- max(y, na.rm = TRUE)
-      y_annot <- y_max + 0.01 * (max(y, na.rm = TRUE) - min(y, na.rm = TRUE))
+  #### Not implemented yet, but should put a check in for how many columns in plot
+  #### and give error if there are too many
+  #n_cols = length(unique(na.omit(df[[groups]]))) + 1
+  #if (n_cols > ...) {
+  #  stop(paste0(
+  #    "ERROR: number of columns in plot will be ",
+  #    n_cols,
+  #    ", which is too many to include in this type of plot"
+  #  ))
+  #}
 
-      fig <- add_trace(
-        fig,
-        type = "scatter",
-        mode = "lines",
-        name = "",
-        x = c(1, 1, 2, 2),
-        y = c(y_annot - 0.01, y_annot, y_annot, y_annot - 0.01),
-        line = list(color = "black", width = 2),
-        showlegend = FALSE,
-        hovertemplate = paste0(
-          "p=",
-          format(pval, scientific = TRUE, digits = 2)
-        )
-      )
-      fig <- add_annotations(
-        fig,
-        x = 1.5,
-        y = y_annot + 0.01 * (max(y, na.rm = TRUE) - min(y, na.rm = TRUE)),
-        text = signif_label,
-        showarrow = FALSE,
-        font = list(size = 16, color = "black"),
-        align = "center"
-      )
-    }
-  } else if (n_groups > 2) {
-    # Get combination of groups and number of comparisons
-    combn_idx <- utils::combn(seq_along(group_names), 2)
-    y_range <- range(y, na.rm = TRUE)
-    y_span <- y_range[2] - y_range[1]
-    n_comparisons <- ncol(combn_idx)
+  # Define function for pairwise statistical testing
+  if (test == "t.test") {
+    pair.test = function(x, y) t.test(x, y, var.equal = FALSE)
+  }
+  if (test == "wilcox.test") {
+    pair.test = function(x, y) wilcox.test(x, y)
+  }
 
-    # Perform pairwise comparisons
-    for (j in seq_len(n_comparisons)) {
-      # Get data for testing
-      idx1 <- combn_idx[1, j]
-      idx2 <- combn_idx[2, j]
-      group1 <- group_names[idx1]
-      group2 <- group_names[idx2]
-      y1 <- y[x == group1]
-      y2 <- y[x == group2]
-
-      # Perform testing with requested test
-      if (test == "t.test") {
-        pval <- tryCatch(t.test(y1, y2)$p.value, error = function(e) NA)
-      } else {
-        pval <- tryCatch(wilcox.test(y1, y2)$p.value, error = function(e) NA)
-      }
-
-      # Generate significance label for significant associations
-      signif_label <- if (!is.na(pval) && pval < alpha) {
-        if (pval < 0.001) {
-          "***"
-        } else if (pval < 0.01) {
-          "**"
-        } else if (pval < 0.05) {
-          "*"
-        } else {
-          "ns"
-        }
-      } else {
-        "ns"
-      }
-
-      # Add annotation lines and text if significant
-      if (signif_label != "ns") {
-        # Stagger annotation heights
-        y_annot <- y_range[2] + (0.01 + 0.06 * (j - 1)) * y_span
-
-        fig <- add_trace(
-          fig,
-          type = "scatter",
-          mode = "lines",
-          name = "",
-          x = c(idx1, idx1, idx2, idx2) - 1,
-          y = c(y_annot - 0.01, y_annot, y_annot, y_annot - 0.01),
-          line = list(color = "black", width = 2),
-          showlegend = FALSE,
-          hovertemplate = paste0(
-            "p=",
-            format(pval, scientific = TRUE, digits = 2)
+  # Create a small function to capitalize categories more aesthetically
+  format_string = function(x) {
+    nocaps = "^and$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$|^Mean\u00B1SD$"
+    alwayscaps = "^II$|^III$|^IV$|^V$|^VI$|^VII$|^VIII$|^VIIII$|^X$"
+    paste(
+      sapply(unlist(stringr::str_split(x, " ")), function(y) {
+        ifelse(
+          grepl(nocaps, y, ignore.case = TRUE),
+          y,
+          ifelse(
+            grepl(alwayscaps, y, ignore.case = TRUE),
+            toupper(y),
+            stringr::str_to_title(y)
           )
         )
-        fig <- add_annotations(
-          fig,
-          x = mean(c(idx1, idx2)) - 1,
-          y = y_annot + 0.01 * y_span,
-          text = signif_label,
-          showarrow = FALSE,
-          font = list(size = 16, color = "black"),
-          align = "center"
-        )
+      }),
+      collapse = " "
+    )
+  }
+
+  if (!is.null(groups)) {
+    # Calculate average and standard deviations for groups
+    n = sapply(names(table(df[[groups]])), function(x) {
+      length(na.omit(df[[column]][df[[groups]] == x]))
+    })
+    avg = sapply(names(table(df[[groups]])), function(x) {
+      round(mean(df[[column]][df[[groups]] == x], na.rm = TRUE), 1)
+    })
+    std = sapply(names(table(df[[groups]])), function(x) {
+      round(sd(df[[column]][df[[groups]] == x], na.rm = TRUE), 1)
+    })
+    avg_std = paste0(avg, "\u00B1", std)
+    plot_df = data.frame(
+      group = names(avg),
+      n = n,
+      avg = avg,
+      std_start = avg - std,
+      std_end = avg + std,
+      label = avg_std
+    )
+
+    # Perform pairwise statistical testing
+    plot_annot = data.frame()
+    for (group1 in names(avg)) {
+      for (group2 in names(avg)) {
+        if (
+          group1 != group2 &
+            !(paste(group1, group2) %in%
+              paste(plot_annot[["Group1"]], plot_annot[["Group2"]])) &
+            !(paste(group1, group2) %in%
+              paste(plot_annot[["Group2"]], plot_annot[["Group1"]]))
+        ) {
+          res = pair.test(
+            df[[column]][df[[groups]] == group1],
+            df[[column]][df[[groups]] == group2]
+          )
+          plot_annot = rbind(
+            plot_annot,
+            data.frame(
+              Group1 = group1,
+              Group2 = group2,
+              p = res$p.value
+            )
+          )
+        }
       }
+    }
+
+    # Perform multiple testing correction if specified
+    if (!is.null(multi_test_correct)) {
+      plot_annot[["p"]] = p.adjust(
+        plot_annot[["p"]],
+        method = multi_test_correct
+      )
+    }
+  } else {
+    plot_df = data.frame()
+    plot_annot = data.frame()
+  }
+
+  # Calculate counts and frequencies for all cases and add to plot data
+  n = length(na.omit(df[[column]]))
+  avg = round(mean(df[[column]], na.rm = TRUE), 1)
+  std = round(sd(df[[column]], na.rm = TRUE), 1)
+  avg_std = paste0(avg, "\u00B1", std)
+  plot_df = rbind(
+    data.frame(
+      group = "All Cases",
+      n = n,
+      avg = avg,
+      std_start = avg - std,
+      std_end = avg + std,
+      label = avg_std
+    ),
+    plot_df
+  )
+
+  # Make sure levels of grouping variable are the same as input
+  if (!is.null(groups)) {
+    plot_df[["group"]] = factor(
+      plot_df[["group"]],
+      levels = c("All Cases", names(table(df[[groups]])))
+    )
+  }
+
+  # Need to double the data to get an all case group
+  if (!is.null(groups)) {
+    group_vec = factor(
+      c(rep("All Cases", nrow(df)), as.character(df[[groups]])),
+      levels = c("All Cases", unique(as.character(df[[groups]])))
+    )
+    y_vec = c(df[[column]], df[[column]])
+  } else {
+    group_vec = factor(rep("All Cases", nrow(df)), levels = "All Cases")
+    y_vec = df[[column]]
+  }
+
+  # Perform plotting
+  ymin = min(df[[column]], na.rm = TRUE)
+  ymax = max(df[[column]], na.rm = TRUE)
+  set.seed(1234)
+  g = ggplot2::ggplot(
+    data.frame(group = group_vec, y = y_vec),
+    ggplot2::aes(y = .data[["y"]], x = .data[["group"]])
+  ) +
+    ggplot2::geom_violin(na.rm = TRUE, color = "black", fill = "grey") +
+    ggplot2::geom_boxplot(
+      outliers = FALSE,
+      na.rm = TRUE,
+      color = "black",
+      alpha = 0.75,
+      width = 0.75
+    ) +
+    ggplot2::geom_jitter(na.rm = TRUE, width = 0.1, size = 2) +
+    ggplot2::geom_errorbar(
+      inherit.aes = FALSE,
+      data = plot_df,
+      ggplot2::aes(
+        ymin = .data[["std_start"]],
+        ymax = .data[["std_end"]],
+        x = .data[["group"]]
+      ),
+      color = "red",
+      width = 0.1,
+      linewidth = 1
+    ) +
+    ggplot2::geom_label(
+      inherit.aes = FALSE,
+      data = plot_df,
+      ggplot2::aes(
+        label = .data[["label"]],
+        y = .data[["avg"]],
+        x = .data[["group"]]
+      ),
+      position = ggplot2::position_dodge(0.9),
+      fill = "white",
+      border.color = "red",
+      linewidth = 1
+    ) +
+    ggplot2::scale_x_discrete(
+      labels = paste0(
+        stringr::str_wrap(
+          sapply(unique(plot_df[["group"]]), function(x) format_string(x)),
+          width = 15
+        ),
+        "\n(N=",
+        plot_df[["n"]],
+        ")"
+      )
+    ) +
+    ggplot2::coord_cartesian(ylim = c(ymin, ymax), clip = "off") +
+    ggplot2::labs(
+      x = ifelse(is.null(xlab), format_string(groups), xlab),
+      y = ifelse(is.null(ylab), format_string(column), ylab)
+    ) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(
+      panel.border = ggplot2::element_rect(color = "black", linewidth = 0.5)
+    )
+
+  # Add statistical testing annotations if requested
+  if (!is.null(test) & nrow(plot_annot) > 0) {
+    plot_annot = plot_annot[plot_annot[["p"]] < alpha, ]
+    if (nrow(plot_annot) > 0) {
+      y_position = sapply(1:nrow(plot_annot), function(x) {
+        ymax + (x * (ymax / 20))
+      })
+      g = g +
+        ggsignif::geom_signif(
+          inherit.aes = FALSE,
+          data = plot_annot,
+          ggplot2::aes(
+            xmin = .data[["Group1"]],
+            xmax = .data[["Group2"]],
+            y_position = y_position,
+            annotations = paste0("p=", formatC(.data[["p"]], digits = 1))
+          ),
+          manual = TRUE,
+          tip_length = 0
+        ) +
+        ggplot2::coord_cartesian(ylim = c(ymin, max(y_position)), clip = "off")
     }
   }
 
-  # Adjust labels and formatting
-  fig <- layout(
-    fig,
-    title = NULL,
-    margin = list(t = 20),
-    xaxis = list(
-      title = ifelse(!is.null(xlab), xlab, groups),
-      tickmode = "array",
-      tickvals = c(-1, 0:(length(group_names) - 1)),
-      ticktext = c("All cases", group_names),
-      ticks = "outside",
-      tickcolor = "black",
-      showline = TRUE,
-      linecolor = "black",
-      linewidth = 2,
-      zeroline = FALSE,
-      mirror = FALSE,
-      showgrid = FALSE
-    ),
-    yaxis = list(
-      title = ifelse(!is.null(ylab), ylab, column),
-      ticks = "outside",
-      tickcolor = "black",
-      showline = TRUE,
-      linecolor = "black",
-      linewidth = 2,
-      zeroline = FALSE,
-      mirror = FALSE,
-      showgrid = FALSE
-    ),
-    font = list(
-      color = "black",
-      size = 16
-    ),
-    plot_bgcolor = "white"
-  )
+  # Save plot to file if requested
+  if (save) {
+    ggplot2::ggsave(
+      out_path,
+      g,
+      width = figwidth,
+      height = figheight,
+      units = "px"
+    )
+  }
 
-  return(fig)
+  return(g)
 }

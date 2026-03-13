@@ -9,7 +9,8 @@ stratified_stat_table(
   groups,
   columns,
   rename_dict = NULL,
-  covariates = NULL
+  covariates = NULL,
+  omics_mode = FALSE
 )
 }
 \arguments{
@@ -29,6 +30,17 @@ exist as names in \code{rename_dict} when provided.)}
 
 \item{covariates}{Optional names of additional columns in \code{df} to include as covariates
 in the regression models for between-group comparisons.}
+
+\item{omics_mode}{Whether to modify the workflow of this function to process omics data or other
+big data types created via a high-throughput method. Modifications include:
+\itemize{
+\item Skipping of formatting variable names
+\item Not adding extra verbage to the variable names
+\item Performing multiple testing correction via false discovery rate method
+\item Separating the resulting coefficients and confidence intervals for easier
+post-analysis plotting of results
+(default: FALSE)
+}}
 }
 \value{
 A \code{data.frame} where rows correspond to categories (for categorical variables)

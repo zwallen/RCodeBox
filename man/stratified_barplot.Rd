@@ -6,27 +6,28 @@
 \usage{
 stratified_barplot(
   df,
-  groups,
   column,
+  groups = NULL,
   ylab = NULL,
   xlab = NULL,
   legendlab = NULL,
-  colors = NULL,
+  color_list = NULL,
   test = "fisher.test",
   multi_test_correct = NULL,
   alpha = 0.05,
   save = FALSE,
-  figwidth = 5,
-  figheight = 5,
-  out_path = "stratified_barplot"
+  figwidth = 1000,
+  figheight = 1000,
+  out_path = "stratified_barplot.jpg"
 )
 }
 \arguments{
 \item{df}{Dataframe containing the grouping variable and categorical variable of interest.}
 
-\item{groups}{Name of the categorical variable in \code{df} to group by.}
-
 \item{column}{Name of the categorical variable in \code{df} to be plotted.}
+
+\item{groups}{Name of the categorical variable in \code{df} to group by. If not supplied, then
+a non-stratified boxplot will be plotted.}
 
 \item{ylab}{Title for the y-axis. (default is to use \verb{Frequency (\%)})}
 
@@ -34,7 +35,7 @@ stratified_barplot(
 
 \item{legendlab}{Title for the legend. (default is to use name given to \code{column})}
 
-\item{colors}{Vector of R recognized color strings the length of the number of groups in
+\item{color_list}{Vector of R recognized color strings the length of the number of groups in
 the variable provided to \code{column}.}
 
 \item{test}{Which test to use for group comparison: \code{fisher.test}, \code{chisq.test}, or \code{NULL}
@@ -57,7 +58,7 @@ Whatever extension included in the image file name (e.g., jpg, png, pdf) will
 be the format that is outputted.}
 }
 \value{
-A \code{ggplot2} figure object. If export is \code{TRUE}, also exports the image to file.
+A \code{ggplot2} figure object. If save is \code{TRUE}, also exports the image to file.
 }
 \description{
 This function creates a bar plot reporting frequencies of a categorical

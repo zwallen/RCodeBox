@@ -8,17 +8,18 @@
 #'
 #' @param df
 #' Dataframe containing the grouping variable and categorical variable of interest.
-#' @param groups
-#' Name of the categorical variable in `df` to group by.
 #' @param column
 #' Name of the categorical variable in `df` to be plotted.
+#' @param groups
+#' Name of the categorical variable in `df` to group by. If not supplied, then
+#' a non-stratified boxplot will be plotted.
 #' @param ylab
 #' Title for the y-axis. (default is to use `Frequency (%)`)
 #' @param xlab
 #' Title for the x-axis. (default is to use name given to `groups`)
 #' @param legendlab
 #' Title for the legend. (default is to use name given to `column`)
-#' @param colors
+#' @param color_list
 #' Vector of R recognized color strings the length of the number of groups in
 #' the variable provided to `column`.
 #' @param test
@@ -42,30 +43,29 @@
 #' be the format that is outputted.
 #'
 #' @return
-#' A `ggplot2` figure object. If export is `TRUE`, also exports the image to file.
+#' A `ggplot2` figure object. If save is `TRUE`, also exports the image to file.
 #'
 #' @import ggplot2
 #' @importFrom stringr str_split str_to_title
 #' @importFrom ggsignif geom_signif
-#' @importFrom stats fisher.test chisq.test
-#' @importFrom utils combn
+#' @importFrom stats fisher.test chisq.test p.adjust
 #' @export
 #'
 stratified_barplot = function(
   df,
-  groups,
   column,
+  groups = NULL,
   ylab = NULL,
   xlab = NULL,
   legendlab = NULL,
-  colors = NULL,
+  color_list = NULL,
   test = "fisher.test",
   multi_test_correct = NULL,
   alpha = 0.05,
   save = FALSE,
-  figwidth = 5,
-  figheight = 5,
-  out_path = "stratified_barplot"
+  figwidth = 1000,
+  figheight = 1000,
+  out_path = "stratified_barplot.jpg"
 ) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("Package 'ggplot2' is required.")
@@ -78,27 +78,29 @@ stratified_barplot = function(
   }
 
   # Perform a few data checks
-  if (!(groups %in% colnames(df))) {
-    stop("ERROR: groups variable name was not found in column names of df")
-  }
   if (!(column %in% colnames(df))) {
     stop("ERROR: column variable name was not found in df")
-  }
-  if (!(is.factor(df[[groups]]) | is.character(df[[groups]]))) {
-    stop("ERROR: groups variable is not a factor or character variable")
   }
   if (!(is.factor(df[[column]]) | is.character(df[[column]]))) {
     stop("ERROR: column variable is not a factor or character variable")
   }
+  if (!is.null(groups)) {
+    if (!(groups %in% colnames(df))) {
+      stop("ERROR: groups variable name was not found in column names of df")
+    }
+    if (!(is.factor(df[[groups]]) | is.character(df[[groups]]))) {
+      stop("ERROR: groups variable is not a factor or character variable")
+    }
+  }
 
-  #### Not implemented yet, but should put a check in for how many bars in plot
+  #### Not implemented yet, but should put a check in for how many columns in plot
   #### and give error if there are too many
-  #n_bars = length(unique(na.omit(df[[column]]))) *
+  #n_cols = length(unique(na.omit(df[[column]]))) *
   #  (length(unique(na.omit(df[[groups]]))) + 1)
-  #if (n_bars > ...) {
+  #if (n_cols > ...) {
   #  stop(paste0(
   #    "ERROR: number of columns in plot will be ",
-  #    n_bars,
+  #    n_cols,
   #    ", which is too many to include in this type of plot"
   #  ))
   #}
@@ -131,50 +133,55 @@ stratified_barplot = function(
     )
   }
 
-  # Calculate counts and frequencies for groups
-  n = table(df[[column]], df[[groups]])
-  perc = apply(n, 2, function(x) round(x / sum(x) * 100, 1))
-  n_perc = data.frame(matrix(
-    paste0(n, " (", perc, "%)"),
-    nrow = nrow(n),
-    ncol = ncol(n)
-  ))
-  plot_df = data.frame(
-    data.frame(n),
-    Perc = as.vector(perc),
-    Label = unlist(as.vector(n_perc))
-  )
+  if (!is.null(groups)) {
+    # Calculate counts and frequencies for groups
+    n = table(df[[column]], df[[groups]])
+    perc = apply(n, 2, function(x) round(x / sum(x) * 100, 1))
+    n_perc = data.frame(matrix(
+      paste0(n, " (", perc, "%)"),
+      nrow = nrow(n),
+      ncol = ncol(n)
+    ))
+    plot_df = data.frame(
+      data.frame(n),
+      perc = as.vector(perc),
+      label = unlist(as.vector(n_perc))
+    )
 
-  # Perform pairwise statistical testing
-  plot_annot = data.frame()
-  for (group1 in colnames(n)) {
-    for (group2 in colnames(n)) {
-      if (
-        group1 != group2 &
-          !(paste(group1, group2) %in%
-            paste(plot_annot[["Group1"]], plot_annot[["Group2"]])) &
-          !(paste(group1, group2) %in%
-            paste(plot_annot[["Group2"]], plot_annot[["Group1"]]))
-      ) {
-        res = pair.test(n[, c(group1, group2)])
-        plot_annot = rbind(
-          plot_annot,
-          data.frame(
-            Group1 = group1,
-            Group2 = group2,
-            p = res$p.value
+    # Perform pairwise statistical testing
+    plot_annot = data.frame()
+    for (group1 in colnames(n)) {
+      for (group2 in colnames(n)) {
+        if (
+          group1 != group2 &
+            !(paste(group1, group2) %in%
+              paste(plot_annot[["Group1"]], plot_annot[["Group2"]])) &
+            !(paste(group1, group2) %in%
+              paste(plot_annot[["Group2"]], plot_annot[["Group1"]]))
+        ) {
+          res = pair.test(n[, c(group1, group2)])
+          plot_annot = rbind(
+            plot_annot,
+            data.frame(
+              Group1 = group1,
+              Group2 = group2,
+              p = res$p.value
+            )
           )
-        )
+        }
       }
     }
-  }
 
-  # Perform multiple testing correction if specified
-  if (!is.null(multi_test_correct)) {
-    plot_annot[["p"]] = p.adjust(
-      plot_annot[["p"]],
-      method = multi_test_correct
-    )
+    # Perform multiple testing correction if specified
+    if (!is.null(multi_test_correct)) {
+      plot_annot[["p"]] = p.adjust(
+        plot_annot[["p"]],
+        method = multi_test_correct
+      )
+    }
+  } else {
+    plot_df = data.frame()
+    plot_annot = data.frame()
   }
 
   # Calculate counts and frequencies for all cases and add to plot data
@@ -186,8 +193,8 @@ stratified_barplot = function(
       Var1 = names(n),
       Var2 = "All Cases",
       Freq = as.vector(n),
-      Perc = as.vector(perc),
-      Label = n_perc
+      perc = as.vector(perc),
+      label = n_perc
     ),
     plot_df
   )
@@ -197,29 +204,38 @@ stratified_barplot = function(
     plot_df[["Var1"]],
     levels = names(table(df[[column]]))
   )
-  plot_df[["Var2"]] = factor(
-    plot_df[["Var2"]],
-    levels = c("All Cases", names(table(df[[groups]])))
-  )
+  if (!is.null(groups)) {
+    plot_df[["Var2"]] = factor(
+      plot_df[["Var2"]],
+      levels = c("All Cases", names(table(df[[groups]])))
+    )
+  }
 
   # Create color vector for plotting if one was not provided
-  if (is.null(colors)) {
-    colors = RColorBrewer::brewer.pal(
+  if (is.null(color_list)) {
+    color_list = RColorBrewer::brewer.pal(
       length(unique(plot_df[["Var1"]])),
       "Set2"
     )
   }
 
   # Perform plotting
-  ymax = max(plot_df[["Perc"]] + nchar(plot_df[["Label"]]))
-  g = ggplot2::ggplot(plot_df, ggplot2::aes(y = Perc, x = Var2, fill = Var1)) +
+  ymax = max(plot_df[["perc"]] + nchar(plot_df[["label"]]), na.rm = TRUE)
+  g = ggplot2::ggplot(
+    plot_df,
+    ggplot2::aes(
+      y = .data[["perc"]],
+      x = .data[["Var2"]],
+      fill = .data[["Var1"]]
+    )
+  ) +
     ggplot2::geom_col(
       stat = "identity",
       position = "dodge",
       color = "black"
     ) +
     ggplot2::geom_label(
-      ggplot2::aes(label = Label, group = Var1),
+      ggplot2::aes(label = .data[["label"]], group = .data[["Var1"]]),
       position = ggplot2::position_dodge(0.9),
       hjust = -0.1,
       angle = 90,
@@ -229,9 +245,16 @@ stratified_barplot = function(
     ) +
     ggplot2::scale_y_continuous(breaks = seq(0, 100, 10)) +
     ggplot2::scale_x_discrete(
-      labels = stringr::str_wrap(
-        sapply(unique(plot_df[["Var2"]]), function(x) format_string(x)),
-        width = 15
+      labels = paste0(
+        stringr::str_wrap(
+          sapply(unique(plot_df[["Var2"]]), function(x) format_string(x)),
+          width = 15
+        ),
+        "\n(N=",
+        sapply(unique(plot_df[["Var2"]]), function(x) {
+          sum(plot_df[["Freq"]][plot_df[["Var2"]] == x])
+        }),
+        ")"
       )
     ) +
     ggplot2::scale_fill_manual(
@@ -241,7 +264,7 @@ stratified_barplot = function(
         }),
         width = 20
       ),
-      values = colors
+      values = color_list
     ) +
     ggplot2::coord_cartesian(ylim = c(0, ymax), clip = "off") +
     ggplot2::labs(
@@ -269,12 +292,13 @@ stratified_barplot = function(
           inherit.aes = FALSE,
           data = plot_annot,
           ggplot2::aes(
-            xmin = Group1,
-            xmax = Group2,
+            xmin = .data[["Group1"]],
+            xmax = .data[["Group2"]],
             y_position = y_position,
-            annotations = paste0("p=", formatC(p, digits = 1))
+            annotations = paste0("p=", formatC(.data[["p"]], digits = 1))
           ),
-          manual = TRUE
+          manual = TRUE,
+          tip_length = 0
         ) +
         ggplot2::coord_cartesian(ylim = c(0, max(y_position)), clip = "off")
       g$layers = g$layers[c("geom_col", "geom_signif", "geom_label")]

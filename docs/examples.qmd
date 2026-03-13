@@ -33,9 +33,18 @@ Lets go ahead and load the `RCodeBox` package and other packages will need for t
 ```{r}
 #| label: load-packages
 
+# Main package
 library(RCodeBox)
+
+# Packages for prepping the example data
 library(TCGAbiolinks)
 library(SummarizedExperiment)
+
+# Packages for general data wrangling, plotting, display
+library(dplyr)
+library(tidyr)
+library(RColorBrewer)
+library(DT)
 ```
 
 # Example Data Prep {#sec-data-prep}
@@ -155,7 +164,7 @@ rename_dict = list(
 names(rename_dict) = columns
 
 # Create data for testing
-test_data = clinical_data[, c(groups, columns)]
+test_data = clinical_data[, c("barcode", groups, columns)]
 
 # Set not reported or unknown data to missing
 for (col in columns) {
@@ -301,6 +310,8 @@ export_to_xlsx(
 
 * While the `kable_html_table` and `export_to_xlsx` should be flexible to work with any dataframe, they were specifically designed to work with results from running the `stratified_strat_table` function, therefore, unexpected results may occur when using them not on this function's output.
 
+* Additionally, I would only used `kable_html_table` on smaller tables as it has no pagination capability. If wanting to display larger tables in HTML, I would use the `datatable` function from the `DT` package, or something similar.
+
 * Theoretically, the `stratified_stat_table` function will work with any grouping variable regardless the number of groups contained within the variable, however, that doesn't mean you SHOULD test a ton of groups, especially since the function does not do multiple testing correction. I would limit to 3 or 4 groups, any more than that you really should be doing multiple testing corrections and it will start to become difficult to interpret results. If you have a grouping variable with a lot of groups, see if you can collapse some or break it up somehow to make it more digestible.
 
 :::
@@ -325,6 +336,18 @@ A number of functions included in this package can be used for quickly generatin
 
 All functions have the option to save the image to file and modify the width and height of the exported file, so it's publication-ready.
 
+:::{.callout-note}
+
+The units for image width and height are in pixels (e.g., 1000 x 1500 pixels).
+
+:::
+
+:::{.callout-tip}
+
+All functions use the `ggplot2` package and packages that extend it's functionality and return a ggplot2 figure object. This means that you have the ability to add more to the plots, or modify existing layers of the plot within the object if needed. These functions should get you 90% - 100% of the way, but every now and then you may need to tweak things.
+
+:::
+
 ### Traditional Plots {#sec-traditional-plots}
 
 The following functions produce plots that are useful for showing the distributions of categorical or quantitative variables stratified by a grouping variable. These plots are traditional distribution plots, used in any field involving statistical analyses.
@@ -340,23 +363,16 @@ See @fig-1 for the result.
 ```{r}
 #| label: plot-1
 
-# Define grouping variable
-groups = "name"
-
-# Define column of interest
-column = "race"
-
-# Perform plotting
 g = stratified_barplot(
-  test_data, 
-  groups, 
-  column,
+  test_data,
+  groups = "name",
+  column = "race",
   xlab = "Cancer Type",
   legendlab = "Patient Race",
   test = "fisher.test",
   alpha = 0.05,
   save = TRUE,
-  figwidth = 2000, # The units of the width and height are in pixels
+  figwidth = 2000,
   figheight = 1500,
   out_path = "example_output/figure1.jpg"
 )
@@ -379,17 +395,10 @@ See @fig-2 for the result.
 ```{r}
 #| label: plot-2
 
-# Define grouping variable
-groups = "pdl1_gex"
-
-# Define column of interest
-column = "name"
-
-# Perform plotting
 g = stratified_barplot(
-  test_data, 
-  groups, 
-  column,
+  test_data,
+  groups = "pdl1_gex",
+  column = "name",
   xlab = "PD-L1 Gene Expression Levels",
   legendlab = "Cancer Type",
   test = "fisher.test",
@@ -412,17 +421,10 @@ See @fig-3 for the results.
 ```{r}
 #| label: plot-3
 
-# Define grouping variable
-groups = "name"
-
-# Define column of interest
-column = "pdl1_gex"
-
-# Perform plotting
 g = stratified_barplot(
-  test_data, 
-  groups, 
-  column,
+  test_data,
+  groups = "name",
+  column = "pdl1_gex",
   xlab = "Cancer Type",
   legendlab = "PD-L1 Gene Expression Level",
   test = "fisher.test",
@@ -442,20 +444,341 @@ Be wary with how many columns are being plotted when using `stratified_barplot`.
 
 :::
 
+:::{.callout-tip}
+
+If you do not specify a grouping variable to `groups`, then a simple barplot with only all cases will be plotted.
+
+:::
+
 #### Stratified Violin-Boxplots {#sec-stratified-violin-boxplot}
 
+To demonstrate the `stratified_violin_boxplot` function, lets visualize the distributions of patient age within each of the cancer types we've been looking at. Recall earlier that patients with colon adenocarcinoma tended to be a few years younger on average than patients with rectal adenocarcinoma.
+
+See @fig-4 for the result.
+
+```{r}
+#| label: plot-4
+
+g = stratified_violin_boxplot(
+  test_data,
+  groups = "name",
+  column = "age_at_index",
+  xlab = "Cancer Type",
+  ylab = "Patient Age (Years)",
+  test = "t.test",
+  alpha = 0.05,
+  save = TRUE,
+  figwidth = 1500,
+  figheight = 1500,
+  out_path = "example_output/figure4.jpg"
+)
+```
+
+![Age distribution among patients with colon and rectal adenocarcinoma](example_output/figure4.jpg){#fig-4}
+
+As we did earlier, we see the significant, almost 3 year age difference between patients with colon and rectal adenocarcinoma.
+
+Now lets visualize the distribution of patient age based on the PD-L1 gene expression levels we created. Recall very high PD-L1 gene expression was associated with older patient age on average.
+
+See @fig-5 for the result.
+
+```{r}
+#| label: plot-5
+
+g = stratified_violin_boxplot(
+  test_data,
+  groups = "pdl1_gex",
+  column = "age_at_index",
+  xlab = "PD-L1 Gene Expression Level",
+  ylab = "Patient Age (Years)",
+  test = "t.test",
+  alpha = 0.05,
+  save = TRUE,
+  figwidth = 1500,
+  figheight = 1500,
+  out_path = "example_output/figure5.jpg"
+)
+```
+
+![Age distribution among patients with varying levels of tumor PD-L1 gene expression](example_output/figure5.jpg){#fig-5}
+
+From the distributions and pairwise testing, we see that the key difference lies between patients whose tumors have moderate PD-L1 gene expression compared to the very high expression group.
 
 ### Specialty Plots {#sec-specialty-plots}
 
+The following functions produce plots that are more niche in nature, typically used in certain situations commonly come across in biomedical research. Unlike the [Traditional Plots](#sec-traditional-plots), these plots won't include any statistical testing and are just used for visualizing large amounts of data or results from larger analyses.
 
 #### Composition Barplots {#sec-composition-barplot}
 
+Composition barplots are stacked barplots that are normalized to 1 or 100% in order to show how groups or individual observations are composed of another categorical variable of interest. Common use cases for this type of plot include visualizing ancestry admixture in a cohort of individuals, or microbial compositions of biological samples taken from organisms or the environment, but it can be used for any situation where you want to show proportions of a categorical variable within individual observations or groups.
+
+To showcase the `composition_barplot` function, we will visualize the breakdown of gene expression levels for a set of genes known as cancer testis antigen (CTA) genes in the two cancer types we've been working with. CTA genes are a class of genes primarily expressed in normal germ cells of the testis but can get reactivated in various cancers, which make them good potential targets for immunotherapy and cancer vaccines.
+
+Similar to what we did with PD-L1 gene expression, we will first create a number of new variables indicating gene expression levels of different CTA genes, then, for each gene, we will plot the breakdown of gene expression levels in colon and rectal adenocarcinoma cases. This can give us an idea of what CTA genes are most highly expressed in these cohorts. We will target genes in the `MAGE`, `GAGE`, and `SSX` gene families.
+
+:::{.callout-note}
+
+Could we plot the gene expression values for these genes as violin-boxplots? Absolutely, that would be another good option to get a feel for the data. Sometimes though, especially for highly skewed data, it's nice to bin data into discrete categories because it's difficult to see differences between groups with the distributions of numeric values. Because CTA genes are expressed only in normal germ cell tumors and only reactivated somatically by cancer cells, their expression is usually quite sparse and their distributions will be highly skewed toward 0. This would make most violin-boxplots look squished, with a dense bottom around 0 and very spindle-like towards higher values.
+
+:::
+
+See @fig-6 for the results.
+
+```{r}
+#| label: plot-6
+
+# Create needed grouping variables
+ensgid = gex_data[["gene_id"]][grepl("MAGE|GAGE|SSX", gex_data[["gene_name"]])]
+for (id in ensgid) {
+  x = unlist(as.vector(gex_tpm[id, ]))
+  quantiles = quantile(x[x > 0]) # Getting quantiles on non-zero data due to sparsity
+  test_data[[gex_data[id, "gene_name"]]] = factor(
+    dplyr::case_when(
+      gsub("-", ".", rownames(test_data)) %in%
+        colnames(gex_tpm)[gex_tpm[id, ] >= quantiles[4]] ~ "Very High",
+      gsub("-", ".", rownames(test_data)) %in%
+        colnames(gex_tpm)[gex_tpm[id, ] >= quantiles[3]] ~ "High",
+      gsub("-", ".", rownames(test_data)) %in%
+        colnames(gex_tpm)[gex_tpm[id, ] >= quantiles[2]] ~ "Moderate",
+      gsub("-", ".", rownames(test_data)) %in%
+        colnames(gex_tpm)[gex_tpm[id, ] < quantiles[2]] ~ "Low",
+      .default = NA
+    ),
+    levels = c("Low", "Moderate", "High", "Very High")
+  )
+}
+
+# Create a data.frame in "long" format for plotting
+long_data = tidyr::pivot_longer(
+  test_data[, c(
+    "name",
+    grep("MAGE|GAGE|SSX", colnames(test_data), value = TRUE)
+  )],
+  cols = grep("MAGE|GAGE|SSX", colnames(test_data), value = TRUE),
+  names_to = "genes",
+  values_to = "level"
+)
+
+# Perform plotting
+g = composition_barplot(
+  long_data,
+  groups = "genes",
+  column = "level",
+  subcolumns = "name",
+  xlab = "CTA Genes",
+  legendlab = "Gene Expression Level",
+  color_list = RColorBrewer::brewer.pal(
+    length(levels(long_data[["level"]])),
+    "Blues"
+  ),
+  save = TRUE,
+  figwidth = 5000,
+  figheight = 1000,
+  out_path = "example_output/figure6.jpg"
+)
+```
+
+![Composition of gene expression levels for CTA genes in colon and rectal adenocarcinoma](example_output/figure6.jpg){#fig-6}
+
+As expected for CTA genes, there is a lot of low-level expression among these cases with only a handful of genes having fairly high expression levels.
+
+The plot looks a little squished in horizontal orientation, so we can use the parameter `flip_plot = TRUE` to make it vertical. See @fig-7.
+
+```{r}
+#| label: plot-7
+
+g = composition_barplot(
+  long_data,
+  groups = "genes",
+  column = "level",
+  subcolumns = "name",
+  xlab = "CTA Genes",
+  legendlab = "Gene Expression Level",
+  color_list = RColorBrewer::brewer.pal(
+    length(levels(long_data[["level"]])),
+    "Blues"
+  ),
+  flip_plot = TRUE,
+  save = TRUE,
+  figwidth = 2000,
+  figheight = 2500,
+  out_path = "example_output/figure7.jpg"
+)
+```
+
+![Composition of gene expression levels for CTA genes in colon and rectal adenocarcinoma (vertical orientation)](example_output/figure7.jpg){#fig-7}
+
+Definitely looks better in this orientation.
+
+We can also add another grouping on the bars themselves to break them up into meaningful categories. Lets group the genes we're showing by gene family (i.e., `MAGE`, `GAGE`, `SSX`).
+
+```{r}
+#| label: plot-8
+
+# Add variable denoting gene family
+long_data[["gene_family"]] = dplyr::case_when(
+  grepl("MAGE", long_data[["genes"]]) ~ "MAGE",
+  grepl("GAGE", long_data[["genes"]]) ~ "GAGE",
+  grepl("SSX", long_data[["genes"]]) ~ "SSX",
+  .default = NA
+)
+
+# Perform plotting
+g = composition_barplot(
+  long_data,
+  groups = "genes",
+  column = "level",
+  subrows = "gene_family",
+  subcolumns = "name",
+  xlab = "CTA Genes",
+  legendlab = "Gene Expression Level",
+  color_list = RColorBrewer::brewer.pal(
+    length(levels(long_data[["level"]])),
+    "Blues"
+  ),
+  flip_plot = TRUE,
+  save = TRUE,
+  figwidth = 2000,
+  figheight = 2500,
+  out_path = "example_output/figure8.jpg"
+)
+```
+
+![Composition of gene expression levels for CTA genes in colon and rectal adenocarcinoma (vertical orientation)](example_output/figure8.jpg){#fig-8}
+
+:::{.callout-tip}
+
+Depending on if you choose to flip the orientation of the plot with `flip_plot`, you may need to switch around the variables being specified to `subrows` and/or `subcolumns` to make the groupings work correctly. You can tell that the groupings are not working if you get blank columns in the panels.
+
+:::
 
 #### Longtail Plots {#sec-longtail-plot}
 
+Longtail plots refer to non-normalized stacked barplots for showing compositions of a categorical variable of interest within groups while preserving (and usually sorting by) the total count/frequency of groups. Observations are sorted from most prevalent to least, creating a "long tail" of data, which is where the name comes from. A common use case for this type of plot is visualizing genomic alteration frequencies grouped by genes and broken down by alteration type.
+
+See @fig-9 for the results.
+
+```{r}
+#| label: plot-9
+
+```
 
 #### Volcano Plots {#sec-volcano-plot}
 
+Volcano plots (given the name by their volcano-like appearance) are great for visualizing the relationship between p-values (plotted on the y-axis, typically after -log10 transformation) and the corresponding effect sizes (plotted on the x-axis) from statistically testing many features of a single data modality. The original use case for this type of plot was visualizing the results from differential gene expression analyses (derived from micro-array or RNA-seq), where the -log10 p-value and fold change (usually log2 transformed) are plotted together. However, this plot can be used for visualizing any results where many p-values and effect sizes are obtained (e.g., differential abundance analysis for microbiome data or differential protein expression from proteomics). For sake of examples though, we will go with the standard use case and utilize the RNA-seq data we've downloaded -- performing a differential expression analysis between our cancer types and visualizing those results with the `volcano_plot` function.
+
+:::{.callout-important}
+
+While the `volcano_plot` function can be used to visualize any number of p-values and effect sizes, it really is only appropriate to use when the data being tested was derived from the **same** modality of data, i.e., not mixing results from many different data types that are not related. For example, I would use this plot to visualize results from the same RNA-seq or proteomic experiment, but I would not use it to visualize p-values and effect sizes from testing a large number of different clinical variables, each of which can be related or not and have completely different scales and interpretations. There are better plots for those types of analyses if you want to show them side by side (e.g., forest plots).
+
+:::
+
+First lets perform a quick differential expression analysis on the RNA-seq data between the two cancer types. We can use the `stratified_stat_table` function to do this and extract what we need for plotting from the results.
+
+:::{.callout-note}
+
+Because we are analyzing a type of omics data with the `stratified_stat_table` function (i.e., high-throughput data that only contains numeric variables), I will set `omics_mode = TRUE` to modify the workflow as needed when working with omics data, including turning off the automatic formatting of variable names and performing multiple testing correction. If I didn't set this, then all of the gene names would only have the first letter capitalized, which would make them look like mouse/rat gene names. Additionally, all of the gene names would have had "Mean±SD" added to them, which would have just added useless size to the data since all the data is numeric.
+
+:::
+
+See @tbl-3 for results with a false discovery rate (FDR) corrected q-value < 0.05.
+
+```{r}
+#| label: tbl-3
+#| tbl-cap: "Differential gene expression analysis results for colon vs rectal adenocarcinoma"
+
+# Prepare the gene expression data for analysis by transposing data to be
+# sample by gene, filtering genes by those that (1) have non-zero expression in
+# at least 50% of cases and (2) are protein coding, transform the data using a
+# simple centered log-ratio transformation, and add cancer type variable
+gex_test_data = data.frame(t(gex_counts))
+gex_test_data = gex_test_data[,
+  colSums(gex_test_data > 0) > (0.5 * nrow(gex_test_data)) &
+    colnames(gex_test_data) %in%
+      gex_data[["gene_id"]][gex_data[["gene_type"]] == "protein_coding"]
+]
+gex_test_data = data.frame(t(apply(gex_test_data, 1, function(x) {
+  log(x + 1) - mean(log(x + 1))
+})))
+gex_test_data = data.frame(
+  gex_test_data,
+  name = test_data[gsub("\\.", "-", colnames(gex_counts)), "name"]
+)
+
+# Define grouping variable
+groups = "name"
+
+# Define columns of interest
+columns = colnames(gex_test_data)[-ncol(gex_test_data)]
+
+# Define named list to rename variables by
+rename_dict = as.list(gex_data[["gene_name"]])
+names(rename_dict) = gex_data[["gene_id"]]
+
+# Run analysis
+results = stratified_stat_table(
+  gex_test_data,
+  groups,
+  columns,
+  rename_dict,
+  omics_mode = TRUE
+)
+
+# Display significant results
+sig_results = results[as.numeric(results[["FDR"]]) < 0.05, ]
+sig_results = sig_results[order(as.numeric(sig_results[["P"]])), ]
+DT::datatable(sig_results, rownames = FALSE)
+```
+
+Now lets plot the differential expression analysis results using the `volcano_plot` function.
+
+See @fig-N for the results.
+
+```{r}
+#| label: plot-N
+
+g = volcano_plot(
+  results,
+  variable = "Variable",
+  coef = "Coef",
+  pvalue = "FDR",
+  transform_pvalue = TRUE,
+  alpha = 0.05,
+  top_n = 5,
+  first_group_name = "Colon Adenocarcinoma",
+  second_group_name = "Rectum Adenocarcinoma",
+  ylab = "-log10 FDR q-value",
+  xlab = "Mean difference in CLR-transformed gene expression",
+  save = TRUE,
+  figwidth = 2000,
+  figheight = 1500,
+  out_path = "example_output/figureN.jpg"
+)
+```
+
+![Differential gene expression analysis results between colon and rectal adenocarcinoma](example_output/figureN.jpg){#fig-N}
+
+Just looking at our top 5 hits on either side of the plot, we can see that our results make sense for what we would expect in gene expression differences between colon and rectal adenocarcinoma cancer types:
+
+**Rectal-enriched (positive ΔCLR)**
+
+* *PRAC1* sits ~4 kb downstream of *HOXB13* on 17q21 and is classically described as Prostate, Rectum And distal Colon expressed; both genes tend to be co‑regulated. Seeing them as the top rectal markers is expected.
+* *HOXB13* is a posterior HOX gene with high expression in rectum; it is even [used diagnostically as a rectal neuroendocrine tumor marker](https://link.springer.com/article/10.1007/s12022-023-09779-9).
+* *EVX2* and *HOXD12* lie at/near the 5′ end of the HOXD cluster (2q31) and often travel with posterior HOXD regulation; seeing both enriched together is a nice internal consistency check.
+
+**Colon‑enriched (negative ΔCLR)**
+
+* *HOXC6*/*HOXC8* (and *HOXD3*/*HOXD4*) are more anterior than *HOXB13*/*HOXD12* in the HOX “code”. Prior work repeatedly reports HOXC family up‑regulation in colon cancer (especially right colon), so finding them higher in “colon vs. rectum” is very plausible.
+
+:::{.callout-important}
+
+If you have previously transformed p-values with a `-log10` or other transformation and are setting `transform_pvalue = FALSE`, make sure that you specify `alpha` using the corresponding transformed value (e.g., `alpha = -log10(0.05)` if you already used a `-log10` transform). If not, the function will not work correctly.
+
+:::
+
+## Utilities {#sec-utilities}
+
+TBD
 
 # R Session {#sec-r-session}
 

@@ -26,6 +26,15 @@
 #' @param covariates
 #' Optional names of additional columns in `df` to include as covariates
 #' in the regression models for between-group comparisons.
+#' @param omics_mode
+#' Whether to modify the workflow of this function to process omics data or other
+#' big data types created via a high-throughput method. Modifications include:
+#'   - Skipping of formatting variable names
+#'   - Not adding extra verbage to the variable names
+#'   - Performing multiple testing correction via false discovery rate method
+#'   - Separating the resulting coefficients and confidence intervals for easier
+#'     post-analysis plotting of results
+#' (default: FALSE)
 #'
 #' @return
 #' A `data.frame` where rows correspond to categories (for categorical variables)
@@ -36,6 +45,7 @@
 #' @importFrom stringr str_split str_to_title
 #' @importFrom logistf logistf
 #' @importFrom stats lm confint pnorm sd na.omit
+#' @importFrom tibble add_column
 #' @export
 #'
 stratified_stat_table = function(
@@ -43,10 +53,14 @@ stratified_stat_table = function(
   groups,
   columns,
   rename_dict = NULL,
-  covariates = NULL
+  covariates = NULL,
+  omics_mode = FALSE
 ) {
   if (!requireNamespace("stringr", quietly = TRUE)) {
     stop("Package 'stringr' is required.")
+  }
+  if (!requireNamespace("tibble", quietly = TRUE)) {
+    stop("Package 'tibble' is required.")
   }
   if (!requireNamespace("logistf", quietly = TRUE)) {
     stop("Package 'logistf' is required.")
@@ -117,15 +131,21 @@ stratified_stat_table = function(
               c(
                 ifelse(
                   !is.null(rename_dict),
-                  paste0(rename_dict[col], ", N (%)"),
-                  paste0(col, ", N (%)")
+                  ifelse(
+                    omics_mode,
+                    rename_dict[col],
+                    paste0(rename_dict[col], ", N (%)")
+                  ),
+                  ifelse(omics_mode, col, paste0(col, ", N (%)"))
                 ),
                 rep("", length(n) - 1)
               )
             ),
-            function(x) format_string(x)
+            function(x) ifelse(omics_mode, x, format_string(x))
           ),
-          Categories = sapply(names(n), function(x) format_string(x)),
+          Categories = sapply(names(n), function(x) {
+            ifelse(omics_mode, x, format_string(x))
+          }),
           Total = n_perc
         )
       )
@@ -175,15 +195,29 @@ stratified_stat_table = function(
             }
 
             # Add results for group at current category
-            group_res = rbind(
-              group_res,
-              data.frame(
-                n_perc[2, 2],
-                `Coef [95%CI]` = coef,
-                P = formatC(pval, digits = 2, format = "e"),
-                check.names = FALSE
+            if (omics_mode) {
+              group_res = rbind(
+                group_res,
+                data.frame(
+                  n_perc[2, 2],
+                  Coef = round(exp(fit$coefficients[2]), 2),
+                  `Coef Lower` = round(exp(fit$ci.lower[2]), 2),
+                  `Coef Upper` = round(exp(fit$ci.upper[2]), 2),
+                  P = formatC(pval, digits = 2, format = "e"),
+                  check.names = FALSE
+                )
               )
-            )
+            } else {
+              group_res = rbind(
+                group_res,
+                data.frame(
+                  n_perc[2, 2],
+                  `Coef [95%CI]` = coef,
+                  P = formatC(pval, digits = 2, format = "e"),
+                  check.names = FALSE
+                )
+              )
+            }
           }
 
           # Remove one p-value if column only has 2 categories
@@ -221,11 +255,15 @@ stratified_stat_table = function(
               " ",
               ifelse(
                 !is.null(rename_dict),
-                paste0(rename_dict[col], ", Mean\u00B1SD"),
-                paste0(col, ", Mean\u00B1SD")
+                ifelse(
+                  omics_mode,
+                  rename_dict[col],
+                  paste0(rename_dict[col], ", Mean\u00B1SD")
+                ),
+                ifelse(omics_mode, col, paste0(col, ", Mean\u00B1SD"))
               )
             ),
-            function(x) format_string(x)
+            function(x) ifelse(omics_mode, x, format_string(x))
           ),
           Categories = "-",
           Total = avg_std
@@ -265,13 +303,24 @@ stratified_stat_table = function(
         )
         pval = summary(fit)$coefficients[2, 4]
 
-        # Add results for group at current category
-        group_res = data.frame(
-          avg_std,
-          `Coef [95%CI]` = coef,
-          P = formatC(pval, digits = 2, format = "e"),
-          check.names = FALSE
-        )
+        # Add results for group
+        if (omics_mode) {
+          group_res = data.frame(
+            avg_std,
+            Coef = round(fit$coefficients[2], 2),
+            `Coef Lower` = round(ci[1], 2),
+            `Coef Upper` = round(ci[2], 2),
+            P = formatC(pval, digits = 2, format = "e"),
+            check.names = FALSE
+          )
+        } else {
+          group_res = data.frame(
+            avg_std,
+            `Coef [95%CI]` = coef,
+            P = formatC(pval, digits = 2, format = "e"),
+            check.names = FALSE
+          )
+        }
 
         # Add group name with total N
         colnames(group_res)[1] = paste0(
@@ -293,8 +342,33 @@ stratified_stat_table = function(
   # If group variable only has two levels, remove first set of results
   # (it's only the reciprocal of the second results)
   if (length(unique(na.omit(df[[groups]]))) == 2) {
-    results = results[, -grep("Coef |P$", colnames(results))[c(1, 2)]]
+    idx = grep("Coef|P$", colnames(results))
+    results = results[, -idx[1:(length(idx) / length(unique(df[[groups]])))]]
   }
+
+  # If results only include numeric variables (i.e., no categories), then
+  # remove the categories column
+  if (sum(results[["Categories"]] == "-") == nrow(results)) {
+    results = results[, -2]
+  }
+
+  # Perform multiple testing correction if omics mode is on
+  if (omics_mode) {
+    for (i in grep("P$", colnames(results))) {
+      results = tibble::add_column(
+        results,
+        FDR = formatC(
+          p.adjust(as.numeric(results[[i]]), method = "fdr"),
+          digits = 2,
+          format = "e"
+        ),
+        .after = i
+      )
+    }
+  }
+
+  # Do one final removal of suffixes to same column names if added
+  colnames(results) = gsub("\\.[0-9]+", "", colnames(results))
 
   return(results)
 }

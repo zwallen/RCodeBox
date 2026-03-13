@@ -6,44 +6,37 @@
 \usage{
 stratified_violin_boxplot(
   df,
-  groups,
   column,
-  subgroups,
+  groups = NULL,
   ylab = NULL,
   xlab = NULL,
-  legendlab = NULL,
-  colors = NULL,
-  test = "wilcox.test",
+  test = "fisher.test",
+  multi_test_correct = NULL,
   alpha = 0.05,
   save = FALSE,
-  figwidth = 5,
-  figheight = 5,
-  out_path = "stratified_barplot"
+  figwidth = 1000,
+  figheight = 1000,
+  out_path = "stratified_violin_boxplot.jpg"
 )
 }
 \arguments{
 \item{df}{Dataframe containing the grouping variable and numeric variable of interest.}
 
-\item{groups}{Name of the categorical variable in \code{df} to group by.}
-
 \item{column}{Name of the numeric variable in \code{df} to be plotted.}
 
-\item{subgroups}{Name of a categorical variable \code{df} to further subgroup each group by.
-(default is to not subgroup)}
+\item{groups}{Name of the categorical variable in \code{df} to group by. If not supplied, then
+a non-stratified boxplot will be plotted.}
 
 \item{ylab}{Title for the y-axis. (default is to use name given to \code{column})}
 
 \item{xlab}{Title for the x-axis. (default is to use name given to \code{groups})}
 
-\item{legendlab}{Title for the legend. Only applicable if \code{subgroups} is specified.
-(default is to use name given to \code{subgroups})}
-
-\item{colors}{Vector of R recognized color strings the length of the number of groups in
-the variable provided to \code{subgroups}. Only applicable if \code{subgroups} is
-specified.}
-
 \item{test}{Which test to use for group comparison: \code{t.test}, \code{wilcox.test}, or \code{NULL}
 (no testing performed). (default: \code{wilcox.test})}
+
+\item{multi_test_correct}{Which method to use for multiple testing correction. Can specify any methods
+that are accepted by the \code{p.adjust} function. (default is to perform no
+correction)}
 
 \item{alpha}{P-value threshold for significance. (default: 0.05)}
 
@@ -58,7 +51,7 @@ Whatever extension included in the image file name (e.g., jpg, png, pdf) will
 be the format that is outputted.}
 }
 \value{
-A \code{ggplot2} figure object. If export is \code{TRUE}, also exports the image to file.
+A \code{ggplot2} figure object. If save is \code{TRUE}, also exports the image to file.
 }
 \description{
 This function creates a violin-box plot with data points and means/stds for a

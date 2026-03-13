@@ -1,4 +1,4 @@
-#' Plot a Volcano Plot Using Plotly
+#' Plot a volcano plot of coefficients and corresponding p-values
 #'
 #' @description
 #' Creates a volcano plot from a data frame with variable, coefficient, and
@@ -6,168 +6,287 @@
 #' negative) and non-significant points are grey. Significant points are
 #' labeled with their variable name.
 #'
-#' @param data
+#' @param df
 #' Dataframe with columns to be plotted.
-#' @param var
-#' Name of variable column.
+#' @param variable
+#' Name of column containing variable names in `df`.
 #' @param coef
-#' Name of coefficient column.
+#' Name of column containing coefficients in `df`.
 #' @param pvalue
-#' Name of p-value column.
+#' Name of column containing p-values in `df`.
 #' @param alpha
 #' Significance threshold (default: 0.05).
+#' @param transform_pvalue
+#' Whether to transform the p-value using `-log10()`. Set to `FALSE` if p-values
+#' are already transformed in some way. (default: TRUE)
+#'
+#' **NOTE:** if you are not supplying untransformed p-values and setting this to
+#' `TRUE`, make sure what you set as `alpha` is also already transformed in the
+#' same manner as the supplied p-values.
+#'
+#' @param first_group_name
+#' Of the two groups tested, what is the name of the first group? (i.e., the
+#' reference group). This is used to add to the legend labels to make the
+#' results more clear. (default is to not include a name)
+#' @param second_group_name
+#' Of the two groups tested, what is the name of the second group? (i.e., the
+#' non-reference group that dictates what the effect direction is of the
+#' coefficient). This is used to add to the legend labels to make the results
+#' more clear. (default is to not include a name)
 #' @param top_n
-#' Number of most significant associations to show labels for on both negative
-#' and positive ends (default: 5).
+#' How many labels to show of the top N results on both ends of the volcano plot.
+#' (default: 5)
 #' @param ylab
-#' Title for y-axis (defaults to "-log10(p-value)").
+#' Title for the y-axis. (default is to use `-log10 p-value`)
 #' @param xlab
-#' Title for x-axis (defaults to "Coefficient").
+#' Title for the x-axis. (default is to use `Coefficient`)
+#' @param color_list
+#' Vector of R recognized color strings of length 3 for coloring significantly
+#' enriched or depleted points and non-significant points. (default is to color
+#' enriched points `red`, depleted points `blue`, and non-significant points
+#' `grey`)
+#' @param save
+#' Whether to save the image to file. (default: FALSE)
+#' @param figwidth
+#' Width of the output image file in pixels (`px`).
+#' @param figheight
+#' Height of the output image file in pixels (`px`).
+#' @param out_path
+#' File path for the output image file. Existing files at this path are overwritten.
+#' Whatever extension included in the image file name (e.g., jpg, png, pdf) will
+#' be the format that is outputted.
 #'
 #' @return
-#' A `plotly` figure object.
+#' A `ggplot2` figure object. If save is `TRUE`, also exports the image to file.
 #'
-#' @import plotly
+#' @import ggplot2
+#' @importFrom stringr str_split str_to_title
+#' @importFrom ggrepel geom_label_repel
+#' @importFrom grid unit
 #' @export
 #'
-volcano_plot <- function(
-  data,
-  var,
+volcano_plot = function(
+  df,
+  variable,
   coef,
   pvalue,
   alpha = 0.05,
+  transform_pvalue = TRUE,
+  first_group_name = NULL,
+  second_group_name = NULL,
   top_n = 5,
-  ylab = "-log10(p-value)",
-  xlab = "Coefficient"
+  ylab = "-log10 p-value",
+  xlab = "Coefficient",
+  color_list = NULL,
+  save = FALSE,
+  figwidth = 1000,
+  figheight = 1000,
+  out_path = "volcano_plot.jpg"
 ) {
-  if (!requireNamespace("plotly", quietly = TRUE)) {
-    stop("Package 'plotly' is required.")
+  if (!requireNamespace("ggplot2", quietly = TRUE)) {
+    stop("Package 'ggplot2' is required.")
+  }
+  if (!requireNamespace("stringr", quietly = TRUE)) {
+    stop("Package 'stringr' is required.")
+  }
+  if (!requireNamespace("ggrepel", quietly = TRUE)) {
+    stop("Package 'ggrepel' is required.")
   }
 
-  # Prepare data
-  data[["neglog10p"]] <- -log10(data[[pvalue]])
-  data[["sig"]] <- data[[pvalue]] < alpha
+  # Perform a few data checks
+  if (!(variable %in% colnames(df))) {
+    stop("ERROR: variable name column was not found in column names of df")
+  }
+  if (!(coef %in% colnames(df))) {
+    stop("ERROR: name of coefficient column was not found in df")
+  }
+  if (!(pvalue %in% colnames(df))) {
+    stop("ERROR: name of p-value column was not found in df")
+  }
+  if (!(is.factor(df[[variable]]) | is.character(df[[variable]]))) {
+    stop("ERROR: variable name column is not a factor or character variable")
+  }
+  if (!(is.numeric(df[[coef]]))) {
+    warning("WARNING: coefficient column was not numeric and will be converted")
+    df[[coef]] = as.numeric(df[[coef]])
+  }
+  if (!(is.numeric(df[[pvalue]]))) {
+    warning("WARNING: p-value column was not numeric and will be converted")
+    df[[pvalue]] = as.numeric(df[[pvalue]])
+  }
+  if (sum(df[[pvalue]] == 0) > 0) {
+    stop(paste0(
+      "ERROR: p-value column contains zeros, try manually calculating ",
+      "p-values as some functions in R give zero p-values"
+    ))
+  }
+  if (!is.null(color_list)) {
+    if (length(color_list) != 3) {
+      stop("ERROR: color list should have 3 colors in it")
+    }
+  }
 
-  # Determine coefficient midpoint
-  coef_midpoint <- ifelse(
-    min(data[[coef]]) < 0 & max(data[[coef]]) > 0,
-    0,
-    ifelse(
-      min(data[[coef]]) < 1 & max(data[[coef]]) > 1,
-      1,
-      stop("No midpoint detected for range of coefficients given")
+  # Create a small function to capitalize categories more aesthetically
+  format_string = function(x) {
+    nocaps = "^and$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$|^Mean\u00B1SD$"
+    alwayscaps = "^II$|^III$|^IV$|^V$|^VI$|^VII$|^VIII$|^VIIII$|^X$"
+    paste(
+      sapply(unlist(stringr::str_split(x, " ")), function(y) {
+        ifelse(
+          grepl(nocaps, y, ignore.case = TRUE),
+          y,
+          ifelse(
+            grepl(alwayscaps, y, ignore.case = TRUE),
+            toupper(y),
+            stringr::str_to_title(y)
+          )
+        )
+      }),
+      collapse = " "
     )
-  )
+  }
 
-  # Color assignment
-  data[["color"]] <- "lightgrey"
-  data[["color"]][data[["sig"]] & data[[coef]] > coef_midpoint] <- "#f7758c"
-  data[["color"]][data[["sig"]] & data[[coef]] < coef_midpoint] <- "#3a5ce9"
-
-  # Create columns to help with sorting
-  data[["coef_direction"]] <- ifelse(data[[coef]] < coef_midpoint, 0, 1)
-
-  # Isolate top n negative association labels
-  data[["label"]] <- ""
-  data <- data[order(data[["coef_direction"]], data[[pvalue]]), ]
-  data[["label"]][1:top_n] <- data[[var]][1:top_n]
-
-  # Isolate top n negative association labels
-  data <- data[order(-xtfrm(data[["coef_direction"]]), data[[pvalue]]), ]
-  data[["label"]][1:top_n] <- data[[var]][1:top_n]
-
-  # Generate main volcano plot
-  fig <- plot_ly(
-    data = data,
-    x = ~ get(coef),
-    y = ~neglog10p,
-    type = "scatter",
-    mode = "markers+text",
-    name = "",
-    text = ~label,
-    textposition = "top middle",
-    marker = list(
-      color = ~color,
-      size = 12,
-      line = list(color = "black", width = 1)
-    ),
-    hovertemplate = paste0(
-      var,
-      ": ",
-      data[[var]],
-      "<br>",
-      "Coef: %{x}<br>",
-      "p-value: ",
-      format(data[[pvalue]], scientific = TRUE, digits = 2)
-    ),
-    showlegend = FALSE
-  )
-
-  # Add reference lines at x-axis midpoint and alpha on the y-axis
-  fig <- layout(
-    fig,
-    shapes = list(
-      list(
-        type = "line",
-        x0 = coef_midpoint,
-        x1 = coef_midpoint,
-        y0 = 0,
-        y1 = 1,
-        xref = "x",
-        yref = "paper",
-        opacity = 0.5,
-        line = list(color = "black", dash = "dash"),
-        layer = "below"
+  # Add column for designating significant results
+  coef_mid = ifelse(min(df[[coef]], na.rm = TRUE) < 0, 0, 1)
+  df[["Result"]] = ifelse(
+    df[[coef]] < coef_mid & df[[pvalue]] < alpha,
+    ifelse(
+      !is.null(first_group_name),
+      paste0(
+        "Enriched in ",
+        first_group_name,
+        " (N=",
+        sum(df[[coef]] < coef_mid & df[[pvalue]] < alpha),
+        ", ",
+        round(
+          sum(df[[coef]] < coef_mid & df[[pvalue]] < alpha) / nrow(df) * 100,
+          1
+        ),
+        "%)"
       ),
-      list(
-        type = "line",
-        x0 = 0,
-        x1 = 1,
-        y0 = -log10(alpha),
-        y1 = -log10(alpha),
-        xref = "paper",
-        yref = "y",
-        opacity = 0.5,
-        line = list(color = "black", dash = "dash"),
-        layer = "below"
+      paste0(
+        "Depleted (N=",
+        ", ",
+        round(
+          sum(df[[coef]] < coef_mid & df[[pvalue]] < alpha) / nrow(df) * 100,
+          1
+        ),
+        "%)"
+      )
+    ),
+    ifelse(
+      df[[coef]] > coef_mid & df[[pvalue]] < alpha,
+      ifelse(
+        !is.null(second_group_name),
+        paste0(
+          "Enriched in ",
+          second_group_name,
+          " (N=",
+          sum(df[[coef]] > coef_mid & df[[pvalue]] < alpha),
+          ", ",
+          round(
+            sum(df[[coef]] > coef_mid & df[[pvalue]] < alpha) / nrow(df) * 100,
+            1
+          ),
+          "%)"
+        ),
+        paste0(
+          "Enriched (N=",
+          sum(df[[coef]] > coef_mid & df[[pvalue]] < alpha),
+          ", ",
+          round(
+            sum(df[[coef]] > coef_mid & df[[pvalue]] < alpha) / nrow(df) * 100,
+            1
+          ),
+          "%)"
+        )
+      ),
+      paste0(
+        "Not Significant (N=",
+        sum(df[[pvalue]] >= alpha),
+        ", ",
+        round(sum(df[[pvalue]] >= alpha) / nrow(df) * 100, 1),
+        "%)"
       )
     )
   )
 
-  # Adjust labels and formatting
-  fig <- layout(
-    fig,
-    title = NULL,
-    margin = list(t = 20),
-    xaxis = list(
-      title = ifelse(!is.null(xlab), xlab, coef),
-      tickmode = "array",
-      ticks = "outside",
-      tickcolor = "black",
-      showline = TRUE,
-      linecolor = "black",
-      linewidth = 2,
-      zeroline = FALSE,
-      mirror = TRUE,
-      showgrid = FALSE
-    ),
-    yaxis = list(
-      title = ifelse(!is.null(ylab), ylab, "Frequency (%)"),
-      ticks = "outside",
-      tickcolor = "black",
-      showline = TRUE,
-      linecolor = "black",
-      linewidth = 2,
-      zeroline = FALSE,
-      mirror = TRUE,
-      showgrid = FALSE
-    ),
-    font = list(
-      color = "black",
-      size = 16
-    ),
-    plot_bgcolor = "white"
+  # Add label column for labeling significant results and mask all but the
+  # top N significant results
+  df[["label"]] = ifelse(df[[pvalue]] < alpha, df[[variable]], NA)
+  df = df[order(df[[pvalue]]), ]
+  df[["label"]][df[[coef]] < coef_mid][-c(1:top_n)] = NA
+  df[["label"]][df[[coef]] > coef_mid][-c(1:top_n)] = NA
+
+  # Create color vector for plotting if one was not provided
+  if (is.null(color_list)) {
+    color_list = c("blue", "red", "grey")
+  }
+  names(color_list) = c(
+    unique(df[["Result"]][df[[coef]] < coef_mid & df[[pvalue]] < alpha]),
+    unique(df[["Result"]][df[[coef]] > coef_mid & df[[pvalue]] < alpha]),
+    unique(df[["Result"]][df[[pvalue]] >= alpha])
   )
 
-  return(fig)
+  # Transform p-value if specified
+  if (transform_pvalue) {
+    df[[pvalue]] = -log10(df[[pvalue]])
+  }
+
+  # Perform plotting
+  set.seed(1234)
+  g = ggplot2::ggplot(
+    df,
+    ggplot2::aes(x = .data[[coef]], y = .data[[pvalue]])
+  ) +
+    ggplot2::geom_point(
+      ggplot2::aes(color = .data[["Result"]]),
+      size = 2,
+      alpha = 0.5
+    ) +
+    ggplot2::geom_vline(xintercept = coef_mid, linetype = "dashed") +
+    ggplot2::geom_hline(
+      yintercept = ifelse(transform_pvalue, -log10(alpha), alpha),
+      linetype = "dashed"
+    ) +
+    ggrepel::geom_label_repel(
+      ggplot2::aes(label = .data[["label"]]),
+      force_pull = 0,
+      min.segment.length = 0.1,
+      box.padding = 0.2,
+      max.overlaps = Inf,
+      color = "black",
+      segment.color = "black"
+    ) +
+    ggplot2::scale_color_manual(
+      labels = stringr::str_wrap(
+        sapply(unique(df[["Result"]]), function(x) {
+          format_string(x)
+        }),
+        width = 20
+      ),
+      values = color_list
+    ) +
+    ggplot2::labs(
+      x = ifelse(is.null(xlab), "-log10 p-value", xlab),
+      y = ifelse(is.null(ylab), "Coefficient", ylab)
+    ) +
+    ggplot2::theme_classic() +
+    ggplot2::theme(
+      panel.border = ggplot2::element_rect(color = "black", linewidth = 0.5),
+      legend.key.spacing.y = grid::unit(5, units = "point")
+    )
+
+  # Save plot to file if requested
+  if (save) {
+    ggplot2::ggsave(
+      out_path,
+      g,
+      width = figwidth,
+      height = figheight,
+      units = "px"
+    )
+  }
+
+  return(g)
 }

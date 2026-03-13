@@ -2,39 +2,78 @@
 % Please edit documentation in R/volcano_plot.R
 \name{volcano_plot}
 \alias{volcano_plot}
-\title{Plot a Volcano Plot Using Plotly}
+\title{Plot a volcano plot of coefficients and corresponding p-values}
 \usage{
 volcano_plot(
-  data,
-  var,
+  df,
+  variable,
   coef,
   pvalue,
   alpha = 0.05,
+  transform_pvalue = TRUE,
+  first_group_name = NULL,
+  second_group_name = NULL,
   top_n = 5,
-  ylab = "-log10(p-value)",
-  xlab = "Coefficient"
+  ylab = "-log10 p-value",
+  xlab = "Coefficient",
+  color_list = NULL,
+  save = FALSE,
+  figwidth = 1000,
+  figheight = 1000,
+  out_path = "volcano_plot.jpg"
 )
 }
 \arguments{
-\item{data}{Dataframe with columns to be plotted.}
+\item{df}{Dataframe with columns to be plotted.}
 
-\item{var}{Name of variable column.}
+\item{variable}{Name of column containing variable names in \code{df}.}
 
-\item{coef}{Name of coefficient column.}
+\item{coef}{Name of column containing coefficients in \code{df}.}
 
-\item{pvalue}{Name of p-value column.}
+\item{pvalue}{Name of column containing p-values in \code{df}.}
 
 \item{alpha}{Significance threshold (default: 0.05).}
 
-\item{top_n}{Number of most significant associations to show labels for on both negative
-and positive ends (default: 5).}
+\item{transform_pvalue}{Whether to transform the p-value using \code{-log10()}. Set to \code{FALSE} if p-values
+are already transformed in some way. (default: TRUE)
 
-\item{ylab}{Title for y-axis (defaults to "-log10(p-value)").}
+\strong{NOTE:} if you are not supplying untransformed p-values and setting this to
+\code{TRUE}, make sure what you set as \code{alpha} is also already transformed in the
+same manner as the supplied p-values.}
 
-\item{xlab}{Title for x-axis (defaults to "Coefficient").}
+\item{first_group_name}{Of the two groups tested, what is the name of the first group? (i.e., the
+reference group). This is used to add to the legend labels to make the
+results more clear. (default is to not include a name)}
+
+\item{second_group_name}{Of the two groups tested, what is the name of the second group? (i.e., the
+non-reference group that dictates what the effect direction is of the
+coefficient). This is used to add to the legend labels to make the results
+more clear. (default is to not include a name)}
+
+\item{top_n}{How many labels to show of the top N results on both ends of the volcano plot.
+(default: 5)}
+
+\item{ylab}{Title for the y-axis. (default is to use \verb{-log10 p-value})}
+
+\item{xlab}{Title for the x-axis. (default is to use \code{Coefficient})}
+
+\item{color_list}{Vector of R recognized color strings of length 3 for coloring significantly
+enriched or depleted points and non-significant points. (default is to color
+enriched points \code{red}, depleted points \code{blue}, and non-significant points
+\code{grey})}
+
+\item{save}{Whether to save the image to file. (default: FALSE)}
+
+\item{figwidth}{Width of the output image file in pixels (\code{px}).}
+
+\item{figheight}{Height of the output image file in pixels (\code{px}).}
+
+\item{out_path}{File path for the output image file. Existing files at this path are overwritten.
+Whatever extension included in the image file name (e.g., jpg, png, pdf) will
+be the format that is outputted.}
 }
 \value{
-A \code{plotly} figure object.
+A \code{ggplot2} figure object. If save is \code{TRUE}, also exports the image to file.
 }
 \description{
 Creates a volcano plot from a data frame with variable, coefficient, and
