@@ -134,10 +134,16 @@ composition_barplot = function(
   ))
   plot_df[[groups]] = factor(plot_df[[groups]], levels = cat_order)
 
+  # Make sure levels of column are the same as input
+  plot_df[[column]] = factor(
+    plot_df[[column]],
+    levels = names(table(df[[column]]))
+  )
+
   # Create color vector for plotting if one was not provided
   if (is.null(color_list)) {
     color_list = RColorBrewer::brewer.pal(
-      length(unique(plot_df[[column]])),
+      length(levels(plot_df[[column]])),
       "Set2"
     )
   }
@@ -155,7 +161,7 @@ composition_barplot = function(
     ggplot2::scale_y_continuous(labels = scales::percent, expand = c(0, 0)) +
     ggplot2::scale_fill_manual(
       labels = stringr::str_wrap(
-        sapply(unique(plot_df[[column]]), function(x) {
+        sapply(levels(plot_df[[column]]), function(x) {
           format_string(x)
         }),
         width = 20
@@ -164,7 +170,7 @@ composition_barplot = function(
     ) +
     ggplot2::scale_color_manual(
       labels = stringr::str_wrap(
-        sapply(unique(plot_df[[column]]), function(x) {
+        sapply(levels(plot_df[[column]]), function(x) {
           format_string(x)
         }),
         width = 20

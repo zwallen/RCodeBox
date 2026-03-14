@@ -214,7 +214,7 @@ stratified_violin_boxplot = function(
   if (!is.null(groups)) {
     group_vec = factor(
       c(rep("All Cases", nrow(df)), as.character(df[[groups]])),
-      levels = c("All Cases", unique(as.character(df[[groups]])))
+      levels = c("All Cases", names(table(as.character(df[[groups]]))))
     )
     y_vec = c(df[[column]], df[[column]])
   } else {
@@ -267,7 +267,7 @@ stratified_violin_boxplot = function(
     ggplot2::scale_x_discrete(
       labels = paste0(
         stringr::str_wrap(
-          sapply(unique(plot_df[["group"]]), function(x) format_string(x)),
+          sapply(levels(plot_df[["group"]]), function(x) format_string(x)),
           width = 15
         ),
         "\n(N=",

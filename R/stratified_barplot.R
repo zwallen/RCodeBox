@@ -214,7 +214,7 @@ stratified_barplot = function(
   # Create color vector for plotting if one was not provided
   if (is.null(color_list)) {
     color_list = RColorBrewer::brewer.pal(
-      length(unique(plot_df[["Var1"]])),
+      length(levels(plot_df[["Var1"]])),
       "Set2"
     )
   }
@@ -247,11 +247,11 @@ stratified_barplot = function(
     ggplot2::scale_x_discrete(
       labels = paste0(
         stringr::str_wrap(
-          sapply(unique(plot_df[["Var2"]]), function(x) format_string(x)),
+          sapply(levels(plot_df[["Var2"]]), function(x) format_string(x)),
           width = 15
         ),
         "\n(N=",
-        sapply(unique(plot_df[["Var2"]]), function(x) {
+        sapply(levels(plot_df[["Var2"]]), function(x) {
           sum(plot_df[["Freq"]][plot_df[["Var2"]] == x])
         }),
         ")"
@@ -259,7 +259,7 @@ stratified_barplot = function(
     ) +
     ggplot2::scale_fill_manual(
       labels = stringr::str_wrap(
-        sapply(unique(plot_df[["Var1"]]), function(x) {
+        sapply(levels(plot_df[["Var1"]]), function(x) {
           format_string(x)
         }),
         width = 20

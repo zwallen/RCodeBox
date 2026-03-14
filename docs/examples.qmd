@@ -541,10 +541,12 @@ for (id in ensgid) {
       gsub("-", ".", rownames(test_data)) %in%
         colnames(gex_tpm)[gex_tpm[id, ] >= quantiles[2]] ~ "Moderate",
       gsub("-", ".", rownames(test_data)) %in%
-        colnames(gex_tpm)[gex_tpm[id, ] < quantiles[2]] ~ "Low",
+        colnames(gex_tpm)[gex_tpm[id, ] >= quantiles[1]] ~ "Low",
+      gsub("-", ".", rownames(test_data)) %in%
+        colnames(gex_tpm)[gex_tpm[id, ] < quantiles[1]] ~ "Negative",
       .default = NA
     ),
-    levels = c("Low", "Moderate", "High", "Very High")
+    levels = c("Negative", "Low", "Moderate", "High", "Very High")
   )
 }
 
