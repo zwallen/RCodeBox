@@ -18,7 +18,7 @@ National Cancer Institute Genomic Data Commons (GDC), TCGA-COAD and
 TCGA-READ; retrieved via \pkg{TCGAbiolinks}.
 }
 \usage{
-gex_counts
+data(gex_counts)
 }
 \description{
 Raw (or harmonized) gene-level counts produced by STAR-based RNA-seq

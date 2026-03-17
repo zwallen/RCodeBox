@@ -1,8 +1,9 @@
-#' Plot a compositional (normalized stacked) barplot
+#' Plot a longtail (non-normalized stacked) barplot
 #'
 #' @description
-#' This function creates a normalized stacked bar plot reporting frequencies of
-#' a categorical variable grouped by a specified grouping variable.
+#' This function creates a non-normalized stacked bar plot reporting frequencies of
+#' a categorical variable grouped by a specified grouping variable including total
+#' frequencies for each group of the grouping variable.
 #'
 #' @param df
 #' Dataframe containing the grouping variable and categorical variable of interest.
@@ -15,10 +16,9 @@
 #' @param column
 #' Name of the categorical variable in `df` to be plotted (i.e., how each bar of
 #' the plot will be broken up).
-#' @param subrows
-#' Name of a categorical variable to optionally stratify the plot by.
-#' @param subcolumns
-#' Name of a categorical variable to optionally group bars by.
+#' @param negative_value
+#' Name of the value in `column` that represents a "negative" or "absent" result.
+#' (e.g., `0` for a binary column or `NULL`). Can be an actual value or `NA`.
 #' @param ylab
 #' Title for the y-axis. (default is to use `Frequency (%)`)
 #' @param xlab
@@ -28,10 +28,6 @@
 #' @param color_list
 #' Vector of R recognized color strings the length of the number of groups in
 #' the variable provided to `column`.
-#' @param remove_xaxis_text
-#' Whether to remove the x-axis text and tick marks. Useful for when there are
-#' many bars being plotted and showing the x-axis text is not feasible.
-#' (default: FALSE)
 #' @param flip_plot
 #' Whether to flip the plot so bars are now horizontal. (default: FALSE)
 #' @param save
@@ -50,20 +46,20 @@
 #'
 #' @import ggplot2
 #' @importFrom stringr str_split str_to_title
+#' @importFrom tidyr pivot_longer
+#' @importFrom tidyselect everything
 #' @importFrom grid unit
 #' @export
 #'
-composition_barplot = function(
+longtail_barplot = function(
   df,
   groups,
   column,
-  subrows = NULL,
-  subcolumns = NULL,
+  negative_value,
   ylab = NULL,
   xlab = NULL,
   legendlab = NULL,
   color_list = NULL,
-  remove_xaxis_text = FALSE,
   flip_plot = FALSE,
   save = FALSE,
   figwidth = 1000,
@@ -76,6 +72,12 @@ composition_barplot = function(
   if (!requireNamespace("stringr", quietly = TRUE)) {
     stop("Package 'stringr' is required.")
   }
+  if (!requireNamespace("tidyr", quietly = TRUE)) {
+    stop("Package 'tidyr' is required.")
+  }
+  if (!requireNamespace("tidyselect", quietly = TRUE)) {
+    stop("Package 'tidyselect' is required.")
+  }
 
   # Perform a few data checks
   if (!(groups %in% colnames(df))) {
@@ -83,6 +85,11 @@ composition_barplot = function(
   }
   if (!(column %in% colnames(df))) {
     stop("ERROR: column variable name was not found in df")
+  }
+  if (!(negative_value %in% names(table(df[[column]], exclude = FALSE)))) {
+    stop(
+      "ERROR: negative value provided was not found in the variable given to column"
+    )
   }
   if (!(is.factor(df[[groups]]) | is.character(df[[groups]]))) {
     stop("ERROR: groups variable is not a factor or character variable")
@@ -112,32 +119,48 @@ composition_barplot = function(
   }
 
   # Remove any missing observations
-  if (!is.null(subrows) & !is.null(subcolumns)) {
-    plot_df = df[
-      rowSums(is.na(df[, c(groups, column, subrows, subcolumns)])) == 0,
-    ]
-  } else if (!is.null(subrows) & is.null(subcolumns)) {
-    plot_df = df[rowSums(is.na(df[, c(groups, column, subrows)])) == 0, ]
-  } else if (is.null(subrows) & !is.null(subcolumns)) {
-    plot_df = df[rowSums(is.na(df[, c(groups, column, subcolumns)])) == 0, ]
-  } else {
-    plot_df = df[rowSums(is.na(df[, c(groups, column)])) == 0, ]
-  }
+  plot_df = df[rowSums(is.na(df[, c(groups, column)])) == 0, ]
 
-  # Detect most prevalent category to plot and sort on its prevalence
-  top_cat = names(sort(table(plot_df[["level"]]), decreasing = TRUE))[1]
-  cat_order = names(sort(
-    table(plot_df[[groups]], plot_df[[column]])[,
-      top_cat
-    ],
-    decreasing = flip_plot
+  # Mask specified "negative" values
+  plot_df[[column]] = as.character(plot_df[[column]])
+  plot_df[[column]][plot_df[[column]] == negative_value] = NA
+
+  # Calculate overall frequencies for groups
+  n = sort(
+    table(plot_df[[groups]][!is.na(plot_df[[column]])]),
+    decreasing = TRUE
+  )
+  perc = round(n / table(plot_df[[groups]]), 3)
+  overall_freq = data.frame(perc)
+
+  # Calculate within group frequencies
+  n = table(plot_df[[column]], plot_df[[groups]])
+  perc = data.frame(sapply(1:ncol(n), function(x) {
+    n[, x] / table(plot_df[[groups]])[x]
+  }))
+  colnames(perc) = colnames(n)
+  plot_df = tidyr::pivot_longer(
+    perc,
+    cols = tidyselect::everything(),
+    names_to = groups,
+    values_to = "Freq"
+  )
+  plot_df[[column]] = unlist(sapply(
+    rownames(n),
+    function(x) rep(x, ncol(n)),
+    simplify = FALSE
   ))
+
+  # Make group levels be sorted by overall frequency
+  cat_order = overall_freq[["Var1"]]
   plot_df[[groups]] = factor(plot_df[[groups]], levels = cat_order)
 
   # Make sure levels of column are the same as input
   plot_df[[column]] = factor(
     plot_df[[column]],
-    levels = names(table(df[[column]]))
+    levels = names(table(df[[column]]))[
+      names(table(df[[column]])) != negative_value
+    ]
   )
 
   # Create color vector for plotting if one was not provided
@@ -149,16 +172,45 @@ composition_barplot = function(
   }
 
   # Perform plotting
+  ymax = max(
+    overall_freq[["Freq"]] +
+      nchar(paste0(overall_freq[["Freq"]] * 100, "%")) / 100,
+    na.rm = TRUE
+  )
   g = ggplot2::ggplot(
     plot_df,
     ggplot2::aes(
+      y = .data[["Freq"]],
       x = .data[[groups]],
       fill = .data[[column]],
       color = .data[[column]]
     )
   ) +
-    ggplot2::geom_bar(position = "fill") +
-    ggplot2::scale_y_continuous(labels = scales::percent, expand = c(0, 0)) +
+    ggplot2::geom_bar(stat = "identity", position = "stack") +
+    ggplot2::geom_bar(
+      inherit.aes = FALSE,
+      data = overall_freq,
+      stat = "identity",
+      ggplot2::aes(y = .data[["Freq"]], x = .data[["Var1"]]),
+      alpha = 0,
+      color = "black"
+    ) +
+    ggplot2::geom_text(
+      inherit.aes = FALSE,
+      data = overall_freq,
+      ggplot2::aes(
+        y = .data[["Freq"]],
+        x = .data[["Var1"]],
+        label = paste0(.data[["Freq"]] * 100, "%")
+      ),
+      angle = ifelse(flip_plot, 0, 90),
+      hjust = -0.1
+    ) +
+    ggplot2::scale_y_continuous(
+      labels = scales::percent,
+      breaks = seq(0, 1, 0.1),
+      expand = ggplot2::expansion(mult = c(0, 0.05))
+    ) +
     ggplot2::scale_fill_manual(
       labels = stringr::str_wrap(
         sapply(levels(plot_df[[column]]), function(x) {
@@ -177,6 +229,7 @@ composition_barplot = function(
       ),
       values = color_list
     ) +
+    ggplot2::coord_cartesian(ylim = c(0, ymax + 0.05), clip = "off") +
     ggplot2::labs(
       x = ifelse(is.null(xlab), format_string(groups), xlab),
       y = ifelse(is.null(ylab), "Frequency (%)", ylab),
@@ -188,50 +241,15 @@ composition_barplot = function(
     ggplot2::guides(color = "none") +
     ggplot2::theme_classic() +
     ggplot2::theme(
-      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5),
-      panel.border = ggplot2::element_rect(color = "black", linewidth = 0.5)
+      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5)#,
+      #panel.border = ggplot2::element_rect(color = "black", linewidth = 0.5)
     )
-
-  # Add bar groupings if specified
-  if (!is.null(subrows) & !is.null(subcolumns)) {
-    g = g +
-      ggplot2::facet_grid(
-        rows = ggplot2::vars(.data[[subrows]]),
-        cols = ggplot2::vars(.data[[subcolumns]]),
-        scales = "free",
-        space = "free"
-      )
-  }
-  if (!is.null(subrows) & is.null(subcolumns)) {
-    g = g +
-      ggplot2::facet_grid(
-        rows = ggplot2::vars(.data[[subrows]]),
-        scales = "free",
-        space = "free"
-      )
-  }
-  if (is.null(subrows) & !is.null(subcolumns)) {
-    g = g +
-      ggplot2::facet_grid(
-        cols = ggplot2::vars(.data[[subcolumns]]),
-        scales = "free",
-        space = "free"
-      )
-  }
-
-  # Remove x-axis text and tick marks if specified
-  if (remove_xaxis_text) {
-    g = g +
-      ggplot2::theme(
-        axis.text.x = ggplot2::element_blank(),
-        axis.ticks.x = ggplot2::element_blank()
-      )
-  }
 
   # Flip plot if specified
   if (flip_plot) {
     g = g +
-      ggplot2::coord_flip() +
+      ggplot2::scale_x_discrete(limits = rev) +
+      ggplot2::coord_flip(ylim = c(0, ymax + 0.05), clip = "off") +
       ggplot2::theme(panel.spacing = grid::unit(1, "lines"))
   }
 

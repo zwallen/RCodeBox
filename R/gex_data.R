@@ -25,6 +25,8 @@
 #'
 #' @seealso \code{\link{gex_counts}}, \code{\link{gex_tpm}}, \code{\link{clinical_data}}
 #'
+#' @usage data(gex_data)
+#' 
 #' @examples
 #' data(gex_data)
 #' head(gex_data)

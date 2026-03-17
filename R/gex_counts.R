@@ -23,6 +23,8 @@
 #'
 #' @seealso \code{\link{gex_tpm}}, \code{\link{gex_data}}, \code{\link{clinical_data}}
 #'
+#' @usage data(gex_counts)
+#' 
 #' @examples
 #' data(gex_counts)
 #' dim(gex_counts)

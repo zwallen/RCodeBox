@@ -17,7 +17,7 @@ National Cancer Institute Genomic Data Commons (GDC), TCGA-COAD and
 TCGA-READ; retrieved via \pkg{TCGAbiolinks}.
 }
 \usage{
-gex_tpm
+data(gex_tpm)
 }
 \description{
 Gene-level expression as \emph{Transcripts Per Million} (TPM) for TCGA

@@ -22,7 +22,7 @@ National Cancer Institute Genomic Data Commons (GDC), TCGA-COAD and
 TCGA-READ; retrieved via \pkg{TCGAbiolinks}.
 }
 \usage{
-gex_data
+data(gex_data)
 }
 \description{
 Annotation describing the genes present in the expression matrices

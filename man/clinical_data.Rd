@@ -28,7 +28,7 @@ National Cancer Institute Genomic Data Commons (GDC), TCGA-COAD and
 TCGA-READ; retrieved via \pkg{TCGAbiolinks}.
 }
 \usage{
-clinical_data
+data(clinical_data)
 }
 \description{
 Patient-level demographics and clinical annotations for \strong{TCGA-COAD}

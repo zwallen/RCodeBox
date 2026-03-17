@@ -51,6 +51,8 @@
 #' Grossman RL. \emph{et al.} (2016) Toward a Shared Vision for Cancer Genomic
 #' Data. \emph{New England Journal of Medicine} 375:1109–1112.
 #'
+#' @usage data(clinical_data)
+#' 
 #' @examples
 #' data(clinical_data)
 #' head(clinical_data)

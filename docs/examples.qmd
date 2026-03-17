@@ -656,14 +656,34 @@ Depending on if you choose to flip the orientation of the plot with `flip_plot`,
 
 #### Longtail Plots {#sec-longtail-plot}
 
-Longtail plots refer to non-normalized stacked barplots for showing compositions of a categorical variable of interest within groups while preserving (and usually sorting by) the total count/frequency of groups. Observations are sorted from most prevalent to least, creating a "long tail" of data, which is where the name comes from. A common use case for this type of plot is visualizing genomic alteration frequencies grouped by genes and broken down by alteration type.
+Longtail plots refer to non-normalized stacked barplots for showing compositions of a categorical variable of interest within groups while preserving (and usually sorting by) the total count/frequency of groups. Observations are sorted from most prevalent to least, creating a "long tail" of data, which is where the name comes from. A common use case for this type of plot is visualizing genomic alteration frequencies grouped by genes and broken down by alteration type. For sake of simplicity, we will use the same data as we did above for the composition barplot, except we will not plot the `Negative` values. This is the main difference between a "composition" and "longtail" barplot, not plotting the "negative", null, or missing results, so that the bar doesn't reach 100% all of the time. We will use the `negative_value` parameter in the `longtail_barplot` function to specify what is the negative value to not plot.
 
 See @fig-9 for the results.
 
 ```{r}
 #| label: plot-9
 
+g = longtail_barplot(
+  long_data,
+  groups = "genes",
+  column = "level",
+  negative_value = "Negative",
+  xlab = "CTA Genes",
+  legendlab = "Gene Expression Level",
+  color_list = RColorBrewer::brewer.pal(
+    length(levels(long_data[["level"]])) - 1,
+    "Blues"
+  ),
+  save = TRUE,
+  figwidth = 3500,
+  figheight = 1700,
+  out_path = "example_output/figure9.jpg"
+)
 ```
+
+![Gene expression prevalence for CTA genes in colon and rectal adenocarcinoma](example_output/figure9.jpg){#fig-9}
+
+As we saw in the composition barplot, a handful of *MAGE* genes and one *SSX* are expressed in at least half of tumors, but most of the CTA genes were sparsely detected.
 
 #### Volcano Plots {#sec-volcano-plot}
 
@@ -734,10 +754,10 @@ DT::datatable(sig_results, rownames = FALSE)
 
 Now lets plot the differential expression analysis results using the `volcano_plot` function.
 
-See @fig-N for the results.
+See @fig-10 for the results.
 
 ```{r}
-#| label: plot-N
+#| label: plot-10
 
 g = volcano_plot(
   results,
@@ -754,11 +774,11 @@ g = volcano_plot(
   save = TRUE,
   figwidth = 2000,
   figheight = 1500,
-  out_path = "example_output/figureN.jpg"
+  out_path = "example_output/figure10.jpg"
 )
 ```
 
-![Differential gene expression analysis results between colon and rectal adenocarcinoma](example_output/figureN.jpg){#fig-N}
+![Differential gene expression analysis results between colon and rectal adenocarcinoma](example_output/figure10.jpg){#fig-10}
 
 Just looking at our top 5 hits on either side of the plot, we can see that our results make sense for what we would expect in gene expression differences between colon and rectal adenocarcinoma cancer types:
 
@@ -780,7 +800,12 @@ If you have previously transformed p-values with a `-log10` or other transformat
 
 ## Utilities {#sec-utilities}
 
-TBD
+:::{.callout-caution}
+## Under Construction
+
+Come back later!
+
+:::
 
 # R Session {#sec-r-session}
 
