@@ -126,26 +126,6 @@ volcano_plot = function(
     }
   }
 
-  # Create a small function to capitalize categories more aesthetically
-  format_string = function(x) {
-    nocaps = "^and$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$|^Mean\u00B1SD$"
-    alwayscaps = "^II$|^III$|^IV$|^V$|^VI$|^VII$|^VIII$|^VIIII$|^X$"
-    paste(
-      sapply(unlist(stringr::str_split(x, " ")), function(y) {
-        ifelse(
-          grepl(nocaps, y, ignore.case = TRUE),
-          y,
-          ifelse(
-            grepl(alwayscaps, y, ignore.case = TRUE),
-            toupper(y),
-            stringr::str_to_title(y)
-          )
-        )
-      }),
-      collapse = " "
-    )
-  }
-
   # Add column for designating significant results
   coef_mid = ifelse(min(df[[coef]], na.rm = TRUE) < 0, 0, 1)
   df[["Result"]] = ifelse(

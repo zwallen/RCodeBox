@@ -10,6 +10,7 @@ stratified_stat_table(
   columns,
   rename_dict = NULL,
   covariates = NULL,
+  keep_caps = NULL,
   omics_mode = FALSE
 )
 }
@@ -30,6 +31,10 @@ exist as names in \code{rename_dict} when provided.)}
 
 \item{covariates}{Optional names of additional columns in \code{df} to include as covariates
 in the regression models for between-group comparisons.}
+
+\item{keep_caps}{Vector of character strings to make sure to keep capitalized. The function
+automatically tries to keep roman numerals capitalized, but any other string
+needs to be provided here.}
 
 \item{omics_mode}{Whether to modify the workflow of this function to process omics data or other
 big data types created via a high-throughput method. Modifications include:

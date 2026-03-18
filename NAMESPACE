@@ -2,6 +2,7 @@
 
 export(composition_barplot)
 export(export_to_xlsx)
+export(format_string)
 export(kable_html_table)
 export(liftover_vcf)
 export(load_vcf_w_genes)

@@ -91,26 +91,6 @@ composition_barplot = function(
     stop("ERROR: column variable is not a factor or character variable")
   }
 
-  # Create a small function to capitalize categories more aesthetically
-  format_string = function(x) {
-    nocaps = "^and$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$|^Mean\u00B1SD$"
-    alwayscaps = "^II$|^III$|^IV$|^V$|^VI$|^VII$|^VIII$|^VIIII$|^X$"
-    paste(
-      sapply(unlist(stringr::str_split(x, " ")), function(y) {
-        ifelse(
-          grepl(nocaps, y, ignore.case = TRUE),
-          y,
-          ifelse(
-            grepl(alwayscaps, y, ignore.case = TRUE),
-            toupper(y),
-            stringr::str_to_title(y)
-          )
-        )
-      }),
-      collapse = " "
-    )
-  }
-
   # Remove any missing observations
   if (!is.null(subrows) & !is.null(subcolumns)) {
     plot_df = df[

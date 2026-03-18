@@ -26,6 +26,10 @@
 #' @param covariates
 #' Optional names of additional columns in `df` to include as covariates
 #' in the regression models for between-group comparisons.
+#' @param keep_caps
+#' Vector of character strings to make sure to keep capitalized. The function
+#' automatically tries to keep roman numerals capitalized, but any other string
+#' needs to be provided here.
 #' @param omics_mode
 #' Whether to modify the workflow of this function to process omics data or other
 #' big data types created via a high-throughput method. Modifications include:
@@ -42,7 +46,6 @@
 #' the variable label, categories, total summary, stratified group summaries, and
 #' regression results (Coefficient and P-value).
 #'
-#' @importFrom stringr str_split str_to_title
 #' @importFrom logistf logistf
 #' @importFrom stats lm confint pnorm sd na.omit
 #' @importFrom tibble add_column
@@ -54,11 +57,9 @@ stratified_stat_table = function(
   columns,
   rename_dict = NULL,
   covariates = NULL,
+  keep_caps = NULL,
   omics_mode = FALSE
 ) {
-  if (!requireNamespace("stringr", quietly = TRUE)) {
-    stop("Package 'stringr' is required.")
-  }
   if (!requireNamespace("tibble", quietly = TRUE)) {
     stop("Package 'tibble' is required.")
   }
@@ -87,25 +88,8 @@ stratified_stat_table = function(
       ))
     }
   }
-
-  # Create a small function to capitalize categories more aesthetically
-  format_string = function(x) {
-    nocaps = "^and$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$|^Mean\u00B1SD$"
-    alwayscaps = "^II$|^III$|^IV$|^V$|^VI$|^VII$|^VIII$|^VIIII$|^X$"
-    paste(
-      sapply(unlist(stringr::str_split(x, " ")), function(y) {
-        ifelse(
-          grepl(nocaps, y, ignore.case = TRUE),
-          y,
-          ifelse(
-            grepl(alwayscaps, y, ignore.case = TRUE),
-            toupper(y),
-            stringr::str_to_title(y)
-          )
-        )
-      }),
-      collapse = " "
-    )
+  if (groups %in% columns) {
+    stop("ERROR: grouping variable was listed among the columns to analyze")
   }
 
   # For each column of interest, calculate summary statistics and
@@ -141,10 +125,10 @@ stratified_stat_table = function(
                 rep("", length(n) - 1)
               )
             ),
-            function(x) ifelse(omics_mode, x, format_string(x))
+            function(x) ifelse(omics_mode, x, format_string(x, keep_caps))
           ),
           Categories = sapply(names(n), function(x) {
-            ifelse(omics_mode, x, format_string(x))
+            ifelse(omics_mode, x, format_string(x, keep_caps))
           }),
           Total = n_perc
         )
@@ -227,7 +211,7 @@ stratified_stat_table = function(
 
           # Add group name with total N
           colnames(group_res)[1] = paste0(
-            format_string(group),
+            format_string(group, keep_caps),
             " (N=",
             table(df[[groups]])[group],
             ")"
@@ -263,7 +247,7 @@ stratified_stat_table = function(
                 ifelse(omics_mode, col, paste0(col, ", Mean\u00B1SD"))
               )
             ),
-            function(x) ifelse(omics_mode, x, format_string(x))
+            function(x) ifelse(omics_mode, x, format_string(x, keep_caps))
           ),
           Categories = "-",
           Total = avg_std
@@ -324,7 +308,7 @@ stratified_stat_table = function(
 
         # Add group name with total N
         colnames(group_res)[1] = paste0(
-          format_string(group),
+          format_string(group, keep_caps),
           " (N=",
           table(df[[groups]])[group],
           ")"

@@ -105,26 +105,6 @@ stratified_violin_boxplot = function(
     pair.test = function(x, y) wilcox.test(x, y)
   }
 
-  # Create a small function to capitalize categories more aesthetically
-  format_string = function(x) {
-    nocaps = "^and$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$|^Mean\u00B1SD$"
-    alwayscaps = "^II$|^III$|^IV$|^V$|^VI$|^VII$|^VIII$|^VIIII$|^X$"
-    paste(
-      sapply(unlist(stringr::str_split(x, " ")), function(y) {
-        ifelse(
-          grepl(nocaps, y, ignore.case = TRUE),
-          y,
-          ifelse(
-            grepl(alwayscaps, y, ignore.case = TRUE),
-            toupper(y),
-            stringr::str_to_title(y)
-          )
-        )
-      }),
-      collapse = " "
-    )
-  }
-
   if (!is.null(groups)) {
     # Calculate average and standard deviations for groups
     n = sapply(names(table(df[[groups]])), function(x) {

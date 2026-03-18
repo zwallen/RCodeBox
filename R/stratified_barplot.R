@@ -148,30 +148,6 @@ stratified_barplot = function(
       label = unlist(as.vector(n_perc))
     )
 
-    # Perform pairwise statistical testing
-    plot_annot = data.frame()
-    for (group1 in colnames(n)) {
-      for (group2 in colnames(n)) {
-        if (
-          group1 != group2 &
-            !(paste(group1, group2) %in%
-              paste(plot_annot[["Group1"]], plot_annot[["Group2"]])) &
-            !(paste(group1, group2) %in%
-              paste(plot_annot[["Group2"]], plot_annot[["Group1"]]))
-        ) {
-          res = pair.test(n[, c(group1, group2)])
-          plot_annot = rbind(
-            plot_annot,
-            data.frame(
-              Group1 = group1,
-              Group2 = group2,
-              p = res$p.value
-            )
-          )
-        }
-      }
-    }
-
     # Perform multiple testing correction if specified
     if (!is.null(multi_test_correct)) {
       plot_annot[["p"]] = p.adjust(

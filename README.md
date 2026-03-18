@@ -4,11 +4,11 @@
 
 A collection of R functions for commonly performed actions in computational biology and data science projects.
 
-Releases of the package can be installed from GitHub:
+The most recent release of the package can be installed from GitHub:
 
 ```r
 install.packages("devtools")
-devtools::install_github("zwallen/RCodeBox")
+devtools::install_github("zwallen/RCodeBox@*release")
 ```
 
 And imported in your R scripts as follows:
@@ -41,5 +41,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Changelog
 
-Version 0.1.0 (current)
+Version 0.1.1
+* Created a standalone function for formatting strings (`format_string`) to title cases and removed the creation of that function within other functions
+* Added parameter `keep_caps` to the `stratified_stat_table` function in order to allow specifying certain strings to keep capitalized in the output table (e.g., abbreviations)
+
+Version 0.1.0
 * Initializing package repository
