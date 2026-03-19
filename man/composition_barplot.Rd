@@ -16,6 +16,7 @@ composition_barplot(
   color_list = NULL,
   remove_xaxis_text = FALSE,
   flip_plot = FALSE,
+  keep_caps = NULL,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -52,6 +53,10 @@ many bars being plotted and showing the x-axis text is not feasible.
 (default: FALSE)}
 
 \item{flip_plot}{Whether to flip the plot so bars are now horizontal. (default: FALSE)}
+
+\item{keep_caps}{Vector of character strings to make sure to keep capitalized. The function
+automatically tries to keep roman numerals capitalized, but any other string
+needs to be provided here.}
 
 \item{save}{Whether to save the image to file. (default: FALSE)}
 

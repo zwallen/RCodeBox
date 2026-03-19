@@ -41,6 +41,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Changelog
 
+Version 0.1.2
+* Added `keep_caps` parameters to plotting functions
+* Extended `ymax` for `stratified_barplot` by multiplying max character N by 1.5
+
 Version 0.1.1
 * Created a standalone function for formatting strings (`format_string`) to title cases and removed the creation of that function within other functions
 * Added parameter `keep_caps` to the `stratified_stat_table` function in order to allow specifying certain strings to keep capitalized in the output table (e.g., abbreviations)

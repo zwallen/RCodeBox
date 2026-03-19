@@ -26,6 +26,10 @@
 #' correction)
 #' @param alpha
 #' P-value threshold for significance. (default: 0.05)
+#' @param keep_caps
+#' Vector of character strings to make sure to keep capitalized. The function
+#' automatically tries to keep roman numerals capitalized, but any other string
+#' needs to be provided here.
 #' @param save
 #' Whether to save the image to file. (default: FALSE)
 #' @param figwidth
@@ -41,7 +45,6 @@
 #' A `ggplot2` figure object. If save is `TRUE`, also exports the image to file.
 #'
 #' @import ggplot2
-#' @importFrom stringr str_split str_to_title
 #' @importFrom ggsignif geom_signif
 #' @importFrom stats t.test wilcox.test p.adjust
 #' @export
@@ -55,6 +58,7 @@ stratified_violin_boxplot = function(
   test = "fisher.test",
   multi_test_correct = NULL,
   alpha = 0.05,
+  keep_caps = NULL,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -247,7 +251,9 @@ stratified_violin_boxplot = function(
     ggplot2::scale_x_discrete(
       labels = paste0(
         stringr::str_wrap(
-          sapply(levels(plot_df[["group"]]), function(x) format_string(x)),
+          sapply(levels(plot_df[["group"]]), function(x) {
+            format_string(x, keep_caps)
+          }),
           width = 15
         ),
         "\n(N=",
@@ -257,8 +263,8 @@ stratified_violin_boxplot = function(
     ) +
     ggplot2::coord_cartesian(ylim = c(ymin, ymax), clip = "off") +
     ggplot2::labs(
-      x = ifelse(is.null(xlab), format_string(groups), xlab),
-      y = ifelse(is.null(ylab), format_string(column), ylab)
+      x = ifelse(is.null(xlab), format_string(groups, keep_caps), xlab),
+      y = ifelse(is.null(ylab), format_string(column, keep_caps), ylab)
     ) +
     ggplot2::theme_classic() +
     ggplot2::theme(

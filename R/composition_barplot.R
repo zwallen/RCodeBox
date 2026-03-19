@@ -34,6 +34,10 @@
 #' (default: FALSE)
 #' @param flip_plot
 #' Whether to flip the plot so bars are now horizontal. (default: FALSE)
+#' @param keep_caps
+#' Vector of character strings to make sure to keep capitalized. The function
+#' automatically tries to keep roman numerals capitalized, but any other string
+#' needs to be provided here.
 #' @param save
 #' Whether to save the image to file. (default: FALSE)
 #' @param figwidth
@@ -49,7 +53,6 @@
 #' A `ggplot2` figure object. If save is `TRUE`, also exports the image to file.
 #'
 #' @import ggplot2
-#' @importFrom stringr str_split str_to_title
 #' @importFrom grid unit
 #' @export
 #'
@@ -65,6 +68,7 @@ composition_barplot = function(
   color_list = NULL,
   remove_xaxis_text = FALSE,
   flip_plot = FALSE,
+  keep_caps = NULL,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -142,7 +146,7 @@ composition_barplot = function(
     ggplot2::scale_fill_manual(
       labels = stringr::str_wrap(
         sapply(levels(plot_df[[column]]), function(x) {
-          format_string(x)
+          format_string(x, keep_caps)
         }),
         width = 20
       ),
@@ -151,17 +155,17 @@ composition_barplot = function(
     ggplot2::scale_color_manual(
       labels = stringr::str_wrap(
         sapply(levels(plot_df[[column]]), function(x) {
-          format_string(x)
+          format_string(x, keep_caps)
         }),
         width = 20
       ),
       values = color_list
     ) +
     ggplot2::labs(
-      x = ifelse(is.null(xlab), format_string(groups), xlab),
+      x = ifelse(is.null(xlab), format_string(groups, keep_caps), xlab),
       y = ifelse(is.null(ylab), "Frequency (%)", ylab),
       fill = stringr::str_wrap(
-        ifelse(is.null(legendlab), format_string(column), legendlab),
+        ifelse(is.null(legendlab), format_string(column, keep_caps), legendlab),
         width = 15
       )
     ) +

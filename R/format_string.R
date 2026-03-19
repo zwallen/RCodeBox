@@ -22,7 +22,7 @@ format_string = function(string, keep_caps = NULL) {
     stop("Package 'stringr' is required.")
   }
 
-  nocaps = "^and$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$|^Mean\u00B1SD$"
+  nocaps = "^and$|^but$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$|^Mean\u00B1SD$"
   alwayscaps = paste0(
     "^II$|^III$|^IV$|^V$|^VI$|^VII$|^VIII$|^VIIII$|^X$",
     ifelse(!is.null(keep_caps), "|", ""),

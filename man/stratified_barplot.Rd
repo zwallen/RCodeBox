@@ -15,6 +15,7 @@ stratified_barplot(
   test = "fisher.test",
   multi_test_correct = NULL,
   alpha = 0.05,
+  keep_caps = NULL,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -46,6 +47,10 @@ that are accepted by the \code{p.adjust} function. (default is to perform no
 correction)}
 
 \item{alpha}{P-value threshold for significance. (default: 0.05)}
+
+\item{keep_caps}{Vector of character strings to make sure to keep capitalized. The function
+automatically tries to keep roman numerals capitalized, but any other string
+needs to be provided here.}
 
 \item{save}{Whether to save the image to file. (default: FALSE)}
 

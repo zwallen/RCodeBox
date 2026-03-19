@@ -31,6 +31,10 @@
 #' correction)
 #' @param alpha
 #' P-value threshold for significance. (default: 0.05)
+#' @param keep_caps
+#' Vector of character strings to make sure to keep capitalized. The function
+#' automatically tries to keep roman numerals capitalized, but any other string
+#' needs to be provided here.
 #' @param save
 #' Whether to save the image to file. (default: FALSE)
 #' @param figwidth
@@ -46,7 +50,6 @@
 #' A `ggplot2` figure object. If save is `TRUE`, also exports the image to file.
 #'
 #' @import ggplot2
-#' @importFrom stringr str_split str_to_title
 #' @importFrom ggsignif geom_signif
 #' @importFrom stats fisher.test chisq.test p.adjust
 #' @export
@@ -62,6 +65,7 @@ stratified_barplot = function(
   test = "fisher.test",
   multi_test_correct = NULL,
   alpha = 0.05,
+  keep_caps = NULL,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -106,31 +110,13 @@ stratified_barplot = function(
   #}
 
   # Define function for pairwise statistical testing
-  if (test == "fisher.test") {
-    pair.test = function(x) fisher.test(x)
-  }
-  if (test == "chisq.test") {
-    pair.test = function(x) chisq.test(x)
-  }
-
-  # Create a small function to capitalize categories more aesthetically
-  format_string = function(x) {
-    nocaps = "^and$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$|^Mean\u00B1SD$"
-    alwayscaps = "^II$|^III$|^IV$|^V$|^VI$|^VII$|^VIII$|^VIIII$|^X$"
-    paste(
-      sapply(unlist(stringr::str_split(x, " ")), function(y) {
-        ifelse(
-          grepl(nocaps, y, ignore.case = TRUE),
-          y,
-          ifelse(
-            grepl(alwayscaps, y, ignore.case = TRUE),
-            toupper(y),
-            stringr::str_to_title(y)
-          )
-        )
-      }),
-      collapse = " "
-    )
+  if (!is.null(test)) {
+    if (test == "fisher.test") {
+      pair.test = function(x) fisher.test(x)
+    }
+    if (test == "chisq.test") {
+      pair.test = function(x) chisq.test(x)
+    }
   }
 
   if (!is.null(groups)) {
@@ -148,12 +134,40 @@ stratified_barplot = function(
       label = unlist(as.vector(n_perc))
     )
 
-    # Perform multiple testing correction if specified
-    if (!is.null(multi_test_correct)) {
-      plot_annot[["p"]] = p.adjust(
-        plot_annot[["p"]],
-        method = multi_test_correct
-      )
+    # Perform pairwise statistical testing
+    if (!is.null(test)) {
+      plot_annot = data.frame()
+      for (group1 in colnames(n)) {
+        for (group2 in colnames(n)) {
+          if (
+            group1 != group2 &
+              !(paste(group1, group2) %in%
+                paste(plot_annot[["Group1"]], plot_annot[["Group2"]])) &
+              !(paste(group1, group2) %in%
+                paste(plot_annot[["Group2"]], plot_annot[["Group1"]]))
+          ) {
+            res = pair.test(n[, c(group1, group2)])
+            plot_annot = rbind(
+              plot_annot,
+              data.frame(
+                Group1 = group1,
+                Group2 = group2,
+                p = res$p.value
+              )
+            )
+          }
+        }
+      }
+
+      # Perform multiple testing correction if specified
+      if (!is.null(multi_test_correct)) {
+        plot_annot[["p"]] = p.adjust(
+          plot_annot[["p"]],
+          method = multi_test_correct
+        )
+      }
+    } else {
+      plot_annot = data.frame()
     }
   } else {
     plot_df = data.frame()
@@ -196,7 +210,10 @@ stratified_barplot = function(
   }
 
   # Perform plotting
-  ymax = max(plot_df[["perc"]] + nchar(plot_df[["label"]]), na.rm = TRUE)
+  ymax = max(
+    plot_df[["perc"]] + (nchar(plot_df[["label"]]) * 1.5),
+    na.rm = TRUE
+  )
   g = ggplot2::ggplot(
     plot_df,
     ggplot2::aes(
@@ -213,17 +230,22 @@ stratified_barplot = function(
     ggplot2::geom_label(
       ggplot2::aes(label = .data[["label"]], group = .data[["Var1"]]),
       position = ggplot2::position_dodge(0.9),
-      hjust = -0.1,
+      hjust = -0.05,
       angle = 90,
       fill = "white",
       border.color = "white",
       alpha = 0.75
     ) +
-    ggplot2::scale_y_continuous(breaks = seq(0, 100, 10)) +
+    ggplot2::scale_y_continuous(
+      breaks = seq(0, 100, 10),
+      expand = ggplot2::expansion(mult = c(0, 0.05))
+    ) +
     ggplot2::scale_x_discrete(
       labels = paste0(
         stringr::str_wrap(
-          sapply(levels(plot_df[["Var2"]]), function(x) format_string(x)),
+          sapply(levels(plot_df[["Var2"]]), function(x) {
+            format_string(x, keep_caps)
+          }),
           width = 15
         ),
         "\n(N=",
@@ -236,7 +258,7 @@ stratified_barplot = function(
     ggplot2::scale_fill_manual(
       labels = stringr::str_wrap(
         sapply(levels(plot_df[["Var1"]]), function(x) {
-          format_string(x)
+          format_string(x, keep_caps)
         }),
         width = 20
       ),
@@ -244,10 +266,10 @@ stratified_barplot = function(
     ) +
     ggplot2::coord_cartesian(ylim = c(0, ymax), clip = "off") +
     ggplot2::labs(
-      x = ifelse(is.null(xlab), format_string(groups), xlab),
+      x = ifelse(is.null(xlab), format_string(groups, keep_caps), xlab),
       y = ifelse(is.null(ylab), "Frequency (%)", ylab),
       fill = stringr::str_wrap(
-        ifelse(is.null(legendlab), format_string(column), legendlab),
+        ifelse(is.null(legendlab), format_string(column, keep_caps), legendlab),
         width = 15
       )
     ) +

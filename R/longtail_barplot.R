@@ -30,6 +30,10 @@
 #' the variable provided to `column`.
 #' @param flip_plot
 #' Whether to flip the plot so bars are now horizontal. (default: FALSE)
+#' @param keep_caps
+#' Vector of character strings to make sure to keep capitalized. The function
+#' automatically tries to keep roman numerals capitalized, but any other string
+#' needs to be provided here.
 #' @param save
 #' Whether to save the image to file. (default: FALSE)
 #' @param figwidth
@@ -45,7 +49,6 @@
 #' A `ggplot2` figure object. If save is `TRUE`, also exports the image to file.
 #'
 #' @import ggplot2
-#' @importFrom stringr str_split str_to_title
 #' @importFrom tidyr pivot_longer
 #' @importFrom tidyselect everything
 #' @importFrom grid unit
@@ -61,6 +64,7 @@ longtail_barplot = function(
   legendlab = NULL,
   color_list = NULL,
   flip_plot = FALSE,
+  keep_caps = NULL,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -194,7 +198,7 @@ longtail_barplot = function(
     ggplot2::scale_fill_manual(
       labels = stringr::str_wrap(
         sapply(levels(plot_df[[column]]), function(x) {
-          format_string(x)
+          format_string(x, keep_caps)
         }),
         width = 20
       ),
@@ -203,7 +207,7 @@ longtail_barplot = function(
     ggplot2::scale_color_manual(
       labels = stringr::str_wrap(
         sapply(levels(plot_df[[column]]), function(x) {
-          format_string(x)
+          format_string(x, keep_caps)
         }),
         width = 20
       ),
@@ -211,17 +215,17 @@ longtail_barplot = function(
     ) +
     ggplot2::coord_cartesian(ylim = c(0, ymax + 0.05), clip = "off") +
     ggplot2::labs(
-      x = ifelse(is.null(xlab), format_string(groups), xlab),
+      x = ifelse(is.null(xlab), format_string(groups, keep_caps), xlab),
       y = ifelse(is.null(ylab), "Frequency (%)", ylab),
       fill = stringr::str_wrap(
-        ifelse(is.null(legendlab), format_string(column), legendlab),
+        ifelse(is.null(legendlab), format_string(column, keep_caps), legendlab),
         width = 15
       )
     ) +
     ggplot2::guides(color = "none") +
     ggplot2::theme_classic() +
     ggplot2::theme(
-      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5)#,
+      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5) #,
       #panel.border = ggplot2::element_rect(color = "black", linewidth = 0.5)
     )
 

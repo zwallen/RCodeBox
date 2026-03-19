@@ -17,6 +17,7 @@ volcano_plot(
   ylab = "-log10 p-value",
   xlab = "Coefficient",
   color_list = NULL,
+  keep_caps = NULL,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -61,6 +62,10 @@ more clear. (default is to not include a name)}
 enriched or depleted points and non-significant points. (default is to color
 enriched points \code{red}, depleted points \code{blue}, and non-significant points
 \code{grey})}
+
+\item{keep_caps}{Vector of character strings to make sure to keep capitalized. The function
+automatically tries to keep roman numerals capitalized, but any other string
+needs to be provided here.}
 
 \item{save}{Whether to save the image to file. (default: FALSE)}
 
