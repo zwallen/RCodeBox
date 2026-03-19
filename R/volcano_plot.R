@@ -90,9 +90,6 @@ volcano_plot = function(
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("Package 'ggplot2' is required.")
   }
-  if (!requireNamespace("stringr", quietly = TRUE)) {
-    stop("Package 'stringr' is required.")
-  }
   if (!requireNamespace("ggrepel", quietly = TRUE)) {
     stop("Package 'ggrepel' is required.")
   }

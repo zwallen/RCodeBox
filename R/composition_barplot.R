@@ -77,9 +77,6 @@ composition_barplot = function(
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("Package 'ggplot2' is required.")
   }
-  if (!requireNamespace("stringr", quietly = TRUE)) {
-    stop("Package 'stringr' is required.")
-  }
 
   # Perform a few data checks
   if (!(groups %in% colnames(df))) {

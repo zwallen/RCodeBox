@@ -12,7 +12,7 @@ stratified_barplot(
   xlab = NULL,
   legendlab = NULL,
   color_list = NULL,
-  test = "fisher.test",
+  test = TRUE,
   multi_test_correct = NULL,
   alpha = 0.05,
   keep_caps = NULL,
@@ -39,8 +39,7 @@ a non-stratified boxplot will be plotted.}
 \item{color_list}{Vector of R recognized color strings the length of the number of groups in
 the variable provided to \code{column}.}
 
-\item{test}{Which test to use for group comparison: \code{fisher.test}, \code{chisq.test}, or \code{NULL}
-(no testing performed). (default: \code{fisher.test})}
+\item{test}{Whether to perform pairwise statistical testing. (default: \code{TRUE})}
 
 \item{multi_test_correct}{Which method to use for multiple testing correction. Can specify any methods
 that are accepted by the \code{p.adjust} function. (default is to perform no
@@ -68,6 +67,6 @@ A \code{ggplot2} figure object. If save is \code{TRUE}, also exports the image t
 \description{
 This function creates a bar plot reporting frequencies of a categorical
 variable grouped by a specified grouping variable. It can also test for
-significant differences between groups using Fisher's exact test or Chi-squared
-test, annotating significant comparisons in the plot.
+significant differences between groups using Fisher's exact test, annotating
+significant comparisons in the plot.
 }

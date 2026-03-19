@@ -3,8 +3,8 @@
 #' @description
 #' This function creates a bar plot reporting frequencies of a categorical
 #' variable grouped by a specified grouping variable. It can also test for
-#' significant differences between groups using Fisher's exact test or Chi-squared
-#' test, annotating significant comparisons in the plot.
+#' significant differences between groups using Fisher's exact test, annotating
+#' significant comparisons in the plot.
 #'
 #' @param df
 #' Dataframe containing the grouping variable and categorical variable of interest.
@@ -23,8 +23,7 @@
 #' Vector of R recognized color strings the length of the number of groups in
 #' the variable provided to `column`.
 #' @param test
-#' Which test to use for group comparison: `fisher.test`, `chisq.test`, or `NULL`
-#' (no testing performed). (default: `fisher.test`)
+#' Whether to perform pairwise statistical testing. (default: `TRUE`)
 #' @param multi_test_correct
 #' Which method to use for multiple testing correction. Can specify any methods
 #' that are accepted by the `p.adjust` function. (default is to perform no
@@ -51,7 +50,7 @@
 #'
 #' @import ggplot2
 #' @importFrom ggsignif geom_signif
-#' @importFrom stats fisher.test chisq.test p.adjust
+#' @importFrom stats fisher.test p.adjust
 #' @export
 #'
 stratified_barplot = function(
@@ -62,7 +61,7 @@ stratified_barplot = function(
   xlab = NULL,
   legendlab = NULL,
   color_list = NULL,
-  test = "fisher.test",
+  test = TRUE,
   multi_test_correct = NULL,
   alpha = 0.05,
   keep_caps = NULL,
@@ -73,9 +72,6 @@ stratified_barplot = function(
 ) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("Package 'ggplot2' is required.")
-  }
-  if (!requireNamespace("stringr", quietly = TRUE)) {
-    stop("Package 'stringr' is required.")
   }
   if (!requireNamespace("ggsignif", quietly = TRUE)) {
     stop("Package 'ggsignif' is required.")
@@ -109,16 +105,6 @@ stratified_barplot = function(
   #  ))
   #}
 
-  # Define function for pairwise statistical testing
-  if (!is.null(test)) {
-    if (test == "fisher.test") {
-      pair.test = function(x) fisher.test(x)
-    }
-    if (test == "chisq.test") {
-      pair.test = function(x) chisq.test(x)
-    }
-  }
-
   if (!is.null(groups)) {
     # Calculate counts and frequencies for groups
     n = table(df[[column]], df[[groups]])
@@ -134,8 +120,11 @@ stratified_barplot = function(
       label = unlist(as.vector(n_perc))
     )
 
+    # Remove levels with frequency of 0
+    plot_df = plot_df[plot_df[["perc"]] > 0, ]
+
     # Perform pairwise statistical testing
-    if (!is.null(test)) {
+    if (test) {
       plot_annot = data.frame()
       for (group1 in colnames(n)) {
         for (group2 in colnames(n)) {
@@ -146,7 +135,15 @@ stratified_barplot = function(
               !(paste(group1, group2) %in%
                 paste(plot_annot[["Group2"]], plot_annot[["Group1"]]))
           ) {
-            res = pair.test(n[, c(group1, group2)])
+            res = tryCatch(
+              fisher.test(n[, c(group1, group2)]),
+              error = function(e) {
+                fisher.test(n[, c(group1, group2)], simulate.p.value = TRUE)
+              }
+            )
+            if (is.na(res$p.value)) {
+              res = fisher.test(n[, c(group1, group2)], simulate.p.value = TRUE)
+            }
             plot_annot = rbind(
               plot_annot,
               data.frame(
@@ -279,7 +276,7 @@ stratified_barplot = function(
     )
 
   # Add statistical testing annotations if requested
-  if (!is.null(test) & nrow(plot_annot) > 0) {
+  if (test & nrow(plot_annot) > 0) {
     plot_annot = plot_annot[plot_annot[["p"]] < alpha, ]
     if (nrow(plot_annot) > 0) {
       y_position = sapply(1:nrow(plot_annot), function(x) {

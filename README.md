@@ -41,6 +41,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Changelog
 
+Version 0.1.3
+* Added code to the `stratified_barplot` function that makes sure to remove levels with frequency of 0
+* Added a catch and fix for statistical testing errors using `simulate.p.value = TRUE` in `stratified_barplot` function
+* Removed `chisq.test` as an option for statistical testing in `stratified_barplot` (was having issues with 0 count cells and `fisher.test` can handle contingency tables >2x2 anyway)
+
 Version 0.1.2
 * Added `keep_caps` parameters to plotting functions
 * Extended `ymax` for `stratified_barplot` by multiplying max character N by 1.5

@@ -67,9 +67,6 @@ stratified_violin_boxplot = function(
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("Package 'ggplot2' is required.")
   }
-  if (!requireNamespace("stringr", quietly = TRUE)) {
-    stop("Package 'stringr' is required.")
-  }
   if (!requireNamespace("ggsignif", quietly = TRUE)) {
     stop("Package 'ggsignif' is required.")
   }
