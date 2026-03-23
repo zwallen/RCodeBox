@@ -51,6 +51,7 @@
 #' @import ggplot2
 #' @importFrom ggsignif geom_signif
 #' @importFrom stats fisher.test p.adjust
+#' @importFrom grid unit
 #' @export
 #'
 stratified_barplot = function(
@@ -211,11 +212,12 @@ stratified_barplot = function(
     plot_df[["perc"]] + (nchar(plot_df[["label"]]) * 1.5),
     na.rm = TRUE
   )
+  x_variable = ifelse(!is.null(groups), "Var2", "Var1")
   g = ggplot2::ggplot(
     plot_df,
     ggplot2::aes(
       y = .data[["perc"]],
-      x = .data[["Var2"]],
+      x = .data[[x_variable]],
       fill = .data[["Var1"]]
     )
   ) +
@@ -240,14 +242,14 @@ stratified_barplot = function(
     ggplot2::scale_x_discrete(
       labels = paste0(
         stringr::str_wrap(
-          sapply(levels(plot_df[["Var2"]]), function(x) {
+          sapply(levels(plot_df[[x_variable]]), function(x) {
             format_string(x, keep_caps)
           }),
           width = 15
         ),
         "\n(N=",
-        sapply(levels(plot_df[["Var2"]]), function(x) {
-          sum(plot_df[["Freq"]][plot_df[["Var2"]] == x])
+        sapply(levels(plot_df[[x_variable]]), function(x) {
+          sum(plot_df[["Freq"]][plot_df[[x_variable]] == x])
         }),
         ")"
       )
@@ -272,11 +274,24 @@ stratified_barplot = function(
     ) +
     ggplot2::theme_classic() +
     ggplot2::theme(
-      panel.border = ggplot2::element_rect(color = "black", linewidth = 0.5)
+      panel.border = ggplot2::element_rect(color = "black", linewidth = 0.5),
+      legend.key.spacing.y = grid::unit(0.2, "lines")
     )
+  if (is.null(groups)) {
+    g = g +
+      ggplot2::scale_x_discrete(
+        labels = stringr::str_wrap(
+          sapply(levels(plot_df[["Var1"]]), function(x) {
+            format_string(x, keep_caps)
+          }),
+          width = 15
+        )
+      ) +
+      ggplot2::guides(fill = "none")
+  }
 
   # Add statistical testing annotations if requested
-  if (test & nrow(plot_annot) > 0) {
+  if (!is.null(groups) & test & nrow(plot_annot) > 0) {
     plot_annot = plot_annot[plot_annot[["p"]] < alpha, ]
     if (nrow(plot_annot) > 0) {
       y_position = sapply(1:nrow(plot_annot), function(x) {

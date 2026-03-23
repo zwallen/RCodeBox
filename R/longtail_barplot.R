@@ -222,8 +222,9 @@ longtail_barplot = function(
     ggplot2::guides(color = "none") +
     ggplot2::theme_classic() +
     ggplot2::theme(
-      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5) #,
-      #panel.border = ggplot2::element_rect(color = "black", linewidth = 0.5)
+      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5),
+      #panel.border = ggplot2::element_rect(color = "black", linewidth = 0.5),
+      legend.key.spacing.y = grid::unit(0.2, "lines")
     )
 
   # Flip plot if specified

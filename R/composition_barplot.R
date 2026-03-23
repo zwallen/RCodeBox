@@ -19,6 +19,12 @@
 #' Name of a categorical variable to optionally stratify the plot by.
 #' @param subcolumns
 #' Name of a categorical variable to optionally group bars by.
+#' @param sort_groups
+#' Whether or not to sort groups (i.e., bars) by the most prevalent category in
+#' the specified column. (default: `TRUE`)
+#' @param add_labels
+#' Whether or not to add `N (%)` labels to each groups within the bars. Put it
+#' as `FALSE` if plotting a lot of bars. (default: `TRUE`)
 #' @param ylab
 #' Title for the y-axis. (default is to use `Frequency (%)`)
 #' @param xlab
@@ -62,6 +68,8 @@ composition_barplot = function(
   column,
   subrows = NULL,
   subcolumns = NULL,
+  sort_groups = TRUE,
+  add_labels = TRUE,
   ylab = NULL,
   xlab = NULL,
   legendlab = NULL,
@@ -106,14 +114,21 @@ composition_barplot = function(
   }
 
   # Detect most prevalent category to plot and sort on its prevalence
-  top_cat = names(sort(table(plot_df[["level"]]), decreasing = TRUE))[1]
-  cat_order = names(sort(
-    table(plot_df[[groups]], plot_df[[column]])[,
-      top_cat
-    ],
-    decreasing = flip_plot
-  ))
-  plot_df[[groups]] = factor(plot_df[[groups]], levels = cat_order)
+  if (sort_groups) {
+    top_cat = names(sort(table(plot_df[[column]]), decreasing = TRUE))[1]
+    cat_order = names(sort(
+      table(plot_df[[groups]], plot_df[[column]])[,
+        top_cat
+      ],
+      decreasing = flip_plot
+    ))
+    plot_df[[groups]] = factor(plot_df[[groups]], levels = cat_order)
+  } else {
+    plot_df[[groups]] = factor(
+      plot_df[[groups]],
+      levels = names(table(df[[groups]]))
+    )
+  }
 
   # Make sure levels of column are the same as input
   plot_df[[column]] = factor(
@@ -169,9 +184,36 @@ composition_barplot = function(
     ggplot2::guides(color = "none") +
     ggplot2::theme_classic() +
     ggplot2::theme(
-      axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5),
-      panel.border = ggplot2::element_rect(color = "black", linewidth = 0.5)
+      panel.border = ggplot2::element_rect(color = "black", linewidth = 0.5),
+      legend.key.spacing.y = grid::unit(0.2, "lines")
     )
+  if (!add_labels) {
+    g = g +
+      ggplot2::theme(
+        axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5)
+      )
+  }
+
+  # Add lables if specified
+  if (add_labels) {
+    g = g +
+      ggplot2::geom_text(
+        ggplot2::aes(
+          label = paste0(
+            ggplot2::after_stat(count),
+            " (",
+            scales::percent(
+              ggplot2::after_stat(count) / tapply(count, x, sum)[x]
+            ),
+            ")"
+          )
+        ),
+        stat = "count",
+        position = ggplot2::position_fill(vjust = 0.5),
+        color = "black"
+      )
+    g$layers[[1]]$aes_params$colour = "black"
+  }
 
   # Add bar groupings if specified
   if (!is.null(subrows) & !is.null(subcolumns)) {

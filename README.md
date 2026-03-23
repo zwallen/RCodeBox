@@ -41,6 +41,11 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Changelog
 
+Version 0.1.4
+* Added better handling of simple barplotting (i.e., when `groups = NULL`) to the `stratified_barplot` function
+* Increased vertical spacing between legend elements of barplot functions
+* Added the `sort_groups` and `add_labels` parameters to the `composition_barplot` function
+
 Version 0.1.3
 * Added code to the `stratified_barplot` function that makes sure to remove levels with frequency of 0
 * Added a catch and fix for statistical testing errors using `simulate.p.value = TRUE` in `stratified_barplot` function

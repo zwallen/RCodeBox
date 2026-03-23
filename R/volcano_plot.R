@@ -255,7 +255,7 @@ volcano_plot = function(
     ggplot2::theme_classic() +
     ggplot2::theme(
       panel.border = ggplot2::element_rect(color = "black", linewidth = 0.5),
-      legend.key.spacing.y = grid::unit(5, units = "point")
+      legend.key.spacing.y = grid::unit(0.2, "lines")
     )
 
   # Save plot to file if requested

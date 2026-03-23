@@ -446,7 +446,7 @@ Be wary with how many columns are being plotted when using `stratified_barplot`.
 
 :::{.callout-tip}
 
-If you do not specify a grouping variable to `groups`, then a simple barplot with only all cases will be plotted.
+If you do not specify a grouping variable to `groups`, then a simple barplot for all cases will be plotted and the categories in the variable supplied to `column` will become the x-axis groups.
 
 :::
 
@@ -651,6 +651,8 @@ g = composition_barplot(
 :::{.callout-tip}
 
 Depending on if you choose to flip the orientation of the plot with `flip_plot`, you may need to switch around the variables being specified to `subrows` and/or `subcolumns` to make the groupings work correctly. You can tell that the groupings are not working if you get blank columns in the panels.
+
+Also, you'll notice that if you make `add_labels = TRUE` (the default) then the plot function will assume that you are plotting few enough bars to see the labels in each bar nicely, so it will also make the plot more nicely formatted by adding a black border to the bars and segments and making the x-axis labels horizontal. If this is set to `FALSE`, then the assumption is you are plotting a lot of bars and want a traditional composition barplot look, so it does not add the extra borders (because that would look messy with a lot of bars) and it flips x-axis labels vertically (90 degrees rotation). If the x-axis labels are still too crowded because you are plotting a ton of bars (like where one bar is an individual in a cohort), then you can set `remove_xaxis_text = TRUE` to remove them entirely.
 
 :::
 

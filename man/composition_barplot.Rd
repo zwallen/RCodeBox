@@ -10,6 +10,8 @@ composition_barplot(
   column,
   subrows = NULL,
   subcolumns = NULL,
+  sort_groups = TRUE,
+  add_labels = TRUE,
   ylab = NULL,
   xlab = NULL,
   legendlab = NULL,
@@ -38,6 +40,12 @@ the plot will be broken up).}
 \item{subrows}{Name of a categorical variable to optionally stratify the plot by.}
 
 \item{subcolumns}{Name of a categorical variable to optionally group bars by.}
+
+\item{sort_groups}{Whether or not to sort groups (i.e., bars) by the most prevalent category in
+the specified column. (default: \code{TRUE})}
+
+\item{add_labels}{Whether or not to add \verb{N (\%)} labels to each groups within the bars. Put it
+as \code{FALSE} if plotting a lot of bars. (default: \code{TRUE})}
 
 \item{ylab}{Title for the y-axis. (default is to use \verb{Frequency (\%)})}
 
