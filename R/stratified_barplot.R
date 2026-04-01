@@ -30,10 +30,14 @@
 #' correction)
 #' @param alpha
 #' P-value threshold for significance. (default: 0.05)
-#' @param keep_caps
-#' Vector of character strings to make sure to keep capitalized. The function
-#' automatically tries to keep roman numerals capitalized, but any other string
-#' needs to be provided here.
+#' @param drop_all_cases
+#' Whether or not to drop the "All Cases" group for times when having this group
+#' included in the plot does not make sense (i.e., when not plotting individual
+#' or case-level data). (default: FALSE)
+#' @param drop_level
+#' A level in the variable specified to `column` to drop from the plot. This is
+#' ignored if pairwise testing is performed (would be misleading to drop levels
+#' that were tested).
 #' @param save
 #' Whether to save the image to file. (default: FALSE)
 #' @param figwidth
@@ -65,7 +69,8 @@ stratified_barplot = function(
   test = TRUE,
   multi_test_correct = NULL,
   alpha = 0.05,
-  keep_caps = NULL,
+  drop_all_cases = FALSE,
+  drop_level = NULL,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -173,19 +178,21 @@ stratified_barplot = function(
   }
 
   # Calculate counts and frequencies for all cases and add to plot data
-  n = table(df[[column]])
-  perc = round(n / sum(n) * 100, 1)
-  n_perc = paste0(n, " (", perc, "%)")
-  plot_df = rbind(
-    data.frame(
-      Var1 = names(n),
-      Var2 = "All Cases",
-      Freq = as.vector(n),
-      perc = as.vector(perc),
-      label = n_perc
-    ),
-    plot_df
-  )
+  if (is.null(groups) | !drop_all_cases) {
+    n = table(df[[column]])
+    perc = round(n / sum(n) * 100, 1)
+    n_perc = paste0(n, " (", perc, "%)")
+    plot_df = rbind(
+      data.frame(
+        Var1 = names(n),
+        Var2 = "All Cases",
+        Freq = as.vector(n),
+        perc = as.vector(perc),
+        label = n_perc
+      ),
+      plot_df
+    )
+  }
 
   # Make sure levels of grouping variable and column are the same as input
   plot_df[["Var1"]] = factor(
@@ -193,10 +200,17 @@ stratified_barplot = function(
     levels = names(table(df[[column]]))
   )
   if (!is.null(groups)) {
-    plot_df[["Var2"]] = factor(
-      plot_df[["Var2"]],
-      levels = c("All Cases", names(table(df[[groups]])))
-    )
+    if (!drop_all_cases) {
+      plot_df[["Var2"]] = factor(
+        plot_df[["Var2"]],
+        levels = c("All Cases", names(table(df[[groups]])))
+      )
+    } else {
+      plot_df[["Var2"]] = factor(
+        plot_df[["Var2"]],
+        levels = names(table(df[[groups]]))
+      )
+    }
   }
 
   # Create color vector for plotting if one was not provided
@@ -205,6 +219,12 @@ stratified_barplot = function(
       length(levels(plot_df[["Var1"]])),
       "Set2"
     )
+  }
+
+  # Drop any specified levels
+  if (!is.null(drop_level) & !test) {
+    plot_df = plot_df[!(plot_df[["Var1"]] %in% drop_level), ]
+    plot_df[["Var1"]] = droplevels(plot_df[["Var1"]])
   }
 
   # Perform plotting
@@ -236,15 +256,14 @@ stratified_barplot = function(
       alpha = 0.75
     ) +
     ggplot2::scale_y_continuous(
+      labels = function(x) paste0(x, "%"),
       breaks = seq(0, 100, 10),
       expand = ggplot2::expansion(mult = c(0, 0.05))
     ) +
     ggplot2::scale_x_discrete(
       labels = paste0(
         stringr::str_wrap(
-          sapply(levels(plot_df[[x_variable]]), function(x) {
-            format_string(x, keep_caps)
-          }),
+          sapply(levels(plot_df[[x_variable]]), function(x) x),
           width = 15
         ),
         "\n(N=",
@@ -256,19 +275,17 @@ stratified_barplot = function(
     ) +
     ggplot2::scale_fill_manual(
       labels = stringr::str_wrap(
-        sapply(levels(plot_df[["Var1"]]), function(x) {
-          format_string(x, keep_caps)
-        }),
+        sapply(levels(plot_df[["Var1"]]), function(x) x),
         width = 20
       ),
       values = color_list
     ) +
     ggplot2::coord_cartesian(ylim = c(0, ymax), clip = "off") +
     ggplot2::labs(
-      x = ifelse(is.null(xlab), format_string(groups, keep_caps), xlab),
+      x = ifelse(is.null(xlab), groups, xlab),
       y = ifelse(is.null(ylab), "Frequency (%)", ylab),
       fill = stringr::str_wrap(
-        ifelse(is.null(legendlab), format_string(column, keep_caps), legendlab),
+        ifelse(is.null(legendlab), column, legendlab),
         width = 15
       )
     ) +
@@ -277,13 +294,11 @@ stratified_barplot = function(
       panel.border = ggplot2::element_rect(color = "black", linewidth = 0.5),
       legend.key.spacing.y = grid::unit(0.2, "lines")
     )
-  if (is.null(groups)) {
+  if (is.null(groups) | (!is.null(drop_level) & !test)) {
     g = g +
       ggplot2::scale_x_discrete(
         labels = stringr::str_wrap(
-          sapply(levels(plot_df[["Var1"]]), function(x) {
-            format_string(x, keep_caps)
-          }),
+          sapply(levels(plot_df[["Var1"]]), function(x) x),
           width = 15
         )
       ) +

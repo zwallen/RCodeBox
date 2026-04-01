@@ -8,13 +8,13 @@ longtail_barplot(
   df,
   groups,
   column,
-  negative_value,
+  negative_value = NA,
   ylab = NULL,
   xlab = NULL,
   legendlab = NULL,
   color_list = NULL,
+  digits = 1,
   flip_plot = FALSE,
-  keep_caps = NULL,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -34,7 +34,7 @@ the plot will represent).}
 the plot will be broken up).}
 
 \item{negative_value}{Name of the value in \code{column} that represents a "negative" or "absent" result.
-(e.g., \code{0} for a binary column or \code{NULL}). Can be an actual value or \code{NA}.}
+(e.g., \code{0} for a binary column or \code{NULL}). (default: \code{NA})}
 
 \item{ylab}{Title for the y-axis. (default is to use \verb{Frequency (\%)})}
 
@@ -45,11 +45,9 @@ the plot will be broken up).}
 \item{color_list}{Vector of R recognized color strings the length of the number of groups in
 the variable provided to \code{column}.}
 
-\item{flip_plot}{Whether to flip the plot so bars are now horizontal. (default: FALSE)}
+\item{digits}{How many decimal places to round percentage labels to. (default: 1)}
 
-\item{keep_caps}{Vector of character strings to make sure to keep capitalized. The function
-automatically tries to keep roman numerals capitalized, but any other string
-needs to be provided here.}
+\item{flip_plot}{Whether to flip the plot so bars are now horizontal. (default: FALSE)}
 
 \item{save}{Whether to save the image to file. (default: FALSE)}
 

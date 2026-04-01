@@ -9,16 +9,17 @@ composition_barplot(
   groups,
   column,
   subrows = NULL,
-  subcolumns = NULL,
+  subcols = NULL,
   sort_groups = TRUE,
-  add_labels = TRUE,
+  add_labels = FALSE,
   ylab = NULL,
   xlab = NULL,
   legendlab = NULL,
   color_list = NULL,
   remove_xaxis_text = FALSE,
   flip_plot = FALSE,
-  keep_caps = NULL,
+  flip_subrow_labels = FALSE,
+  flip_subcol_labels = FALSE,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -39,13 +40,13 @@ the plot will be broken up).}
 
 \item{subrows}{Name of a categorical variable to optionally stratify the plot by.}
 
-\item{subcolumns}{Name of a categorical variable to optionally group bars by.}
+\item{subcols}{Name of a categorical variable to optionally group bars by.}
 
 \item{sort_groups}{Whether or not to sort groups (i.e., bars) by the most prevalent category in
 the specified column. (default: \code{TRUE})}
 
 \item{add_labels}{Whether or not to add \verb{N (\%)} labels to each groups within the bars. Put it
-as \code{FALSE} if plotting a lot of bars. (default: \code{TRUE})}
+as \code{FALSE} if plotting a lot of bars. (default: \code{FALSE})}
 
 \item{ylab}{Title for the y-axis. (default is to use \verb{Frequency (\%)})}
 
@@ -62,9 +63,9 @@ many bars being plotted and showing the x-axis text is not feasible.
 
 \item{flip_plot}{Whether to flip the plot so bars are now horizontal. (default: FALSE)}
 
-\item{keep_caps}{Vector of character strings to make sure to keep capitalized. The function
-automatically tries to keep roman numerals capitalized, but any other string
-needs to be provided here.}
+\item{flip_subrow_labels}{Whether to rotate the subrow facet labels 90 degress. (default: FALSE)}
+
+\item{flip_subcol_labels}{Whether to rotate the subcols facet labels 90 degress. (default: FALSE)}
 
 \item{save}{Whether to save the image to file. (default: FALSE)}
 

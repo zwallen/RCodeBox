@@ -18,7 +18,7 @@
 #' the plot will be broken up).
 #' @param negative_value
 #' Name of the value in `column` that represents a "negative" or "absent" result.
-#' (e.g., `0` for a binary column or `NULL`). Can be an actual value or `NA`.
+#' (e.g., `0` for a binary column or `NULL`). (default: `NA`)
 #' @param ylab
 #' Title for the y-axis. (default is to use `Frequency (%)`)
 #' @param xlab
@@ -28,12 +28,10 @@
 #' @param color_list
 #' Vector of R recognized color strings the length of the number of groups in
 #' the variable provided to `column`.
+#' @param digits
+#' How many decimal places to round percentage labels to. (default: 1)
 #' @param flip_plot
 #' Whether to flip the plot so bars are now horizontal. (default: FALSE)
-#' @param keep_caps
-#' Vector of character strings to make sure to keep capitalized. The function
-#' automatically tries to keep roman numerals capitalized, but any other string
-#' needs to be provided here.
 #' @param save
 #' Whether to save the image to file. (default: FALSE)
 #' @param figwidth
@@ -58,13 +56,13 @@ longtail_barplot = function(
   df,
   groups,
   column,
-  negative_value,
+  negative_value = NA,
   ylab = NULL,
   xlab = NULL,
   legendlab = NULL,
   color_list = NULL,
+  digits = 1,
   flip_plot = FALSE,
-  keep_caps = NULL,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -99,19 +97,21 @@ longtail_barplot = function(
     stop("ERROR: column variable is not a factor or character variable")
   }
 
-  # Remove any missing observations
-  plot_df = df[rowSums(is.na(df[, c(groups, column)])) == 0, ]
+  # Make copy of data
+  plot_df = df
 
   # Mask specified "negative" values
   plot_df[[column]] = as.character(plot_df[[column]])
-  plot_df[[column]][plot_df[[column]] == negative_value] = NA
+  if (!is.na(negative_value)) {
+    plot_df[[column]][plot_df[[column]] == negative_value] = NA
+  }
 
   # Calculate overall frequencies for groups
   n = sort(
     table(plot_df[[groups]][!is.na(plot_df[[column]])]),
     decreasing = TRUE
   )
-  perc = round(n / table(plot_df[[groups]]), 3)
+  perc = n / table(plot_df[[groups]])[names(n)]
   overall_freq = data.frame(perc)
 
   # Calculate within group frequencies
@@ -137,12 +137,19 @@ longtail_barplot = function(
   plot_df[[groups]] = factor(plot_df[[groups]], levels = cat_order)
 
   # Make sure levels of column are the same as input
-  plot_df[[column]] = factor(
-    plot_df[[column]],
-    levels = names(table(df[[column]]))[
-      names(table(df[[column]])) != negative_value
-    ]
-  )
+  if (!is.na(negative_value)) {
+    plot_df[[column]] = factor(
+      plot_df[[column]],
+      levels = names(table(df[[column]]))[
+        names(table(df[[column]])) != negative_value
+      ]
+    )
+  } else {
+    plot_df[[column]] = factor(
+      plot_df[[column]],
+      levels = names(table(df[[column]]))
+    )
+  }
 
   # Create color vector for plotting if one was not provided
   if (is.null(color_list)) {
@@ -155,7 +162,7 @@ longtail_barplot = function(
   # Perform plotting
   ymax = max(
     overall_freq[["Freq"]] +
-      nchar(paste0(overall_freq[["Freq"]] * 100, "%")) / 100,
+      nchar(paste0(round(overall_freq[["Freq"]] * 100, digits), "%")) / 100,
     na.rm = TRUE
   )
   g = ggplot2::ggplot(
@@ -174,7 +181,8 @@ longtail_barplot = function(
       stat = "identity",
       ggplot2::aes(y = .data[["Freq"]], x = .data[["Var1"]]),
       alpha = 0,
-      color = "black"
+      color = "black",
+      linewidth = 0.2
     ) +
     ggplot2::geom_text(
       inherit.aes = FALSE,
@@ -182,7 +190,7 @@ longtail_barplot = function(
       ggplot2::aes(
         y = .data[["Freq"]],
         x = .data[["Var1"]],
-        label = paste0(.data[["Freq"]] * 100, "%")
+        label = paste0(round(.data[["Freq"]] * 100, digits), "%")
       ),
       angle = ifelse(flip_plot, 0, 90),
       hjust = -0.1
@@ -194,28 +202,24 @@ longtail_barplot = function(
     ) +
     ggplot2::scale_fill_manual(
       labels = stringr::str_wrap(
-        sapply(levels(plot_df[[column]]), function(x) {
-          format_string(x, keep_caps)
-        }),
+        sapply(levels(plot_df[[column]]), function(x) x),
         width = 20
       ),
       values = color_list
     ) +
     ggplot2::scale_color_manual(
       labels = stringr::str_wrap(
-        sapply(levels(plot_df[[column]]), function(x) {
-          format_string(x, keep_caps)
-        }),
+        sapply(levels(plot_df[[column]]), function(x) x),
         width = 20
       ),
       values = color_list
     ) +
     ggplot2::coord_cartesian(ylim = c(0, ymax + 0.05), clip = "off") +
     ggplot2::labs(
-      x = ifelse(is.null(xlab), format_string(groups, keep_caps), xlab),
+      x = ifelse(is.null(xlab), groups, xlab),
       y = ifelse(is.null(ylab), "Frequency (%)", ylab),
       fill = stringr::str_wrap(
-        ifelse(is.null(legendlab), format_string(column, keep_caps), legendlab),
+        ifelse(is.null(legendlab), column, legendlab),
         width = 15
       )
     ) +
@@ -223,7 +227,7 @@ longtail_barplot = function(
     ggplot2::theme_classic() +
     ggplot2::theme(
       axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5),
-      #panel.border = ggplot2::element_rect(color = "black", linewidth = 0.5),
+      panel.border = ggplot2::element_rect(color = "black", linewidth = 0.5),
       legend.key.spacing.y = grid::unit(0.2, "lines")
     )
 

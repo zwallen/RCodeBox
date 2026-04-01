@@ -15,7 +15,8 @@ stratified_barplot(
   test = TRUE,
   multi_test_correct = NULL,
   alpha = 0.05,
-  keep_caps = NULL,
+  drop_all_cases = FALSE,
+  drop_level = NULL,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -47,9 +48,13 @@ correction)}
 
 \item{alpha}{P-value threshold for significance. (default: 0.05)}
 
-\item{keep_caps}{Vector of character strings to make sure to keep capitalized. The function
-automatically tries to keep roman numerals capitalized, but any other string
-needs to be provided here.}
+\item{drop_all_cases}{Whether or not to drop the "All Cases" group for times when having this group
+included in the plot does not make sense (i.e., when not plotting individual
+or case-level data). (default: FALSE)}
+
+\item{drop_level}{A level in the variable specified to \code{column} to drop from the plot. This is
+ignored if pairwise testing is performed (would be misleading to drop levels
+that were tested).}
 
 \item{save}{Whether to save the image to file. (default: FALSE)}
 

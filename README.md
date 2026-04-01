@@ -41,6 +41,13 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Changelog
 
+Version 0.1.5
+* Added parameters `drop_all_cases` and `drop_level` to `stratified_barplot` function to allow the "All Cases" group and certain levels to be dropped from plotting
+* Removed the calls to `format_string` and `keep_caps` parameters for plotting functions
+* Added parameter `digits` to `longtail_barplot` function to allow control of number of digits in labels
+* Added parameters `flip_subrow_labels` and `flip_subcol_labels` to `composition_barplot` function for when needing to rotate facet labels 90 degrees
+* Overall plotting performance improvements for barplot functions
+
 Version 0.1.4
 * Added better handling of simple barplotting (i.e., when `groups = NULL`) to the `stratified_barplot` function
 * Increased vertical spacing between legend elements of barplot functions

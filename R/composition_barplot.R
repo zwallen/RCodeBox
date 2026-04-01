@@ -17,14 +17,14 @@
 #' the plot will be broken up).
 #' @param subrows
 #' Name of a categorical variable to optionally stratify the plot by.
-#' @param subcolumns
+#' @param subcols
 #' Name of a categorical variable to optionally group bars by.
 #' @param sort_groups
 #' Whether or not to sort groups (i.e., bars) by the most prevalent category in
 #' the specified column. (default: `TRUE`)
 #' @param add_labels
 #' Whether or not to add `N (%)` labels to each groups within the bars. Put it
-#' as `FALSE` if plotting a lot of bars. (default: `TRUE`)
+#' as `FALSE` if plotting a lot of bars. (default: `FALSE`)
 #' @param ylab
 #' Title for the y-axis. (default is to use `Frequency (%)`)
 #' @param xlab
@@ -40,10 +40,10 @@
 #' (default: FALSE)
 #' @param flip_plot
 #' Whether to flip the plot so bars are now horizontal. (default: FALSE)
-#' @param keep_caps
-#' Vector of character strings to make sure to keep capitalized. The function
-#' automatically tries to keep roman numerals capitalized, but any other string
-#' needs to be provided here.
+#' @param flip_subrow_labels
+#' Whether to rotate the subrow facet labels 90 degress. (default: FALSE)
+#' @param flip_subcol_labels
+#' Whether to rotate the subcols facet labels 90 degress. (default: FALSE)
 #' @param save
 #' Whether to save the image to file. (default: FALSE)
 #' @param figwidth
@@ -67,16 +67,17 @@ composition_barplot = function(
   groups,
   column,
   subrows = NULL,
-  subcolumns = NULL,
+  subcols = NULL,
   sort_groups = TRUE,
-  add_labels = TRUE,
+  add_labels = FALSE,
   ylab = NULL,
   xlab = NULL,
   legendlab = NULL,
   color_list = NULL,
   remove_xaxis_text = FALSE,
   flip_plot = FALSE,
-  keep_caps = NULL,
+  flip_subrow_labels = FALSE,
+  flip_subcol_labels = FALSE,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -101,14 +102,14 @@ composition_barplot = function(
   }
 
   # Remove any missing observations
-  if (!is.null(subrows) & !is.null(subcolumns)) {
+  if (!is.null(subrows) & !is.null(subcols)) {
     plot_df = df[
-      rowSums(is.na(df[, c(groups, column, subrows, subcolumns)])) == 0,
+      rowSums(is.na(df[, c(groups, column, subrows, subcols)])) == 0,
     ]
-  } else if (!is.null(subrows) & is.null(subcolumns)) {
+  } else if (!is.null(subrows) & is.null(subcols)) {
     plot_df = df[rowSums(is.na(df[, c(groups, column, subrows)])) == 0, ]
-  } else if (is.null(subrows) & !is.null(subcolumns)) {
-    plot_df = df[rowSums(is.na(df[, c(groups, column, subcolumns)])) == 0, ]
+  } else if (is.null(subrows) & !is.null(subcols)) {
+    plot_df = df[rowSums(is.na(df[, c(groups, column, subcols)])) == 0, ]
   } else {
     plot_df = df[rowSums(is.na(df[, c(groups, column)])) == 0, ]
   }
@@ -157,27 +158,23 @@ composition_barplot = function(
     ggplot2::scale_y_continuous(labels = scales::percent, expand = c(0, 0)) +
     ggplot2::scale_fill_manual(
       labels = stringr::str_wrap(
-        sapply(levels(plot_df[[column]]), function(x) {
-          format_string(x, keep_caps)
-        }),
+        sapply(levels(plot_df[[column]]), function(x) x),
         width = 20
       ),
       values = color_list
     ) +
     ggplot2::scale_color_manual(
       labels = stringr::str_wrap(
-        sapply(levels(plot_df[[column]]), function(x) {
-          format_string(x, keep_caps)
-        }),
+        sapply(levels(plot_df[[column]]), function(x) x),
         width = 20
       ),
       values = color_list
     ) +
     ggplot2::labs(
-      x = ifelse(is.null(xlab), format_string(groups, keep_caps), xlab),
+      x = ifelse(is.null(xlab), groups, xlab),
       y = ifelse(is.null(ylab), "Frequency (%)", ylab),
       fill = stringr::str_wrap(
-        ifelse(is.null(legendlab), format_string(column, keep_caps), legendlab),
+        ifelse(is.null(legendlab), column, legendlab),
         width = 15
       )
     ) +
@@ -216,29 +213,47 @@ composition_barplot = function(
   }
 
   # Add bar groupings if specified
-  if (!is.null(subrows) & !is.null(subcolumns)) {
+  if (!is.null(subrows) & !is.null(subcols)) {
     g = g +
       ggplot2::facet_grid(
         rows = ggplot2::vars(.data[[subrows]]),
-        cols = ggplot2::vars(.data[[subcolumns]]),
+        cols = ggplot2::vars(.data[[subcols]]),
         scales = "free",
         space = "free"
+      ) +
+      ggplot2::theme(
+        strip.text.y = ggplot2::element_text(
+          angle = ifelse(flip_subrow_labels, 90, 0)
+        ),
+        strip.text.x = ggplot2::element_text(
+          angle = ifelse(flip_subcol_labels, 90, 0)
+        )
       )
   }
-  if (!is.null(subrows) & is.null(subcolumns)) {
+  if (!is.null(subrows) & is.null(subcols)) {
     g = g +
       ggplot2::facet_grid(
         rows = ggplot2::vars(.data[[subrows]]),
         scales = "free",
         space = "free"
+      ) +
+      ggplot2::theme(
+        strip.text.y = ggplot2::element_text(
+          angle = ifelse(flip_subrow_labels, 90, 0)
+        )
       )
   }
-  if (is.null(subrows) & !is.null(subcolumns)) {
+  if (is.null(subrows) & !is.null(subcols)) {
     g = g +
       ggplot2::facet_grid(
-        cols = ggplot2::vars(.data[[subcolumns]]),
+        cols = ggplot2::vars(.data[[subcols]]),
         scales = "free",
         space = "free"
+      ) +
+      ggplot2::theme(
+        strip.text.x = ggplot2::element_text(
+          angle = ifelse(flip_subcol_labels, 90, 0)
+        )
       )
   }
 

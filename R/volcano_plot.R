@@ -45,10 +45,6 @@
 #' enriched or depleted points and non-significant points. (default is to color
 #' enriched points `red`, depleted points `blue`, and non-significant points
 #' `grey`)
-#' @param keep_caps
-#' Vector of character strings to make sure to keep capitalized. The function
-#' automatically tries to keep roman numerals capitalized, but any other string
-#' needs to be provided here.
 #' @param save
 #' Whether to save the image to file. (default: FALSE)
 #' @param figwidth
@@ -81,7 +77,6 @@ volcano_plot = function(
   ylab = "-log10 p-value",
   xlab = "Coefficient",
   color_list = NULL,
-  keep_caps = NULL,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -241,9 +236,7 @@ volcano_plot = function(
     ) +
     ggplot2::scale_color_manual(
       labels = stringr::str_wrap(
-        sapply(unique(df[["Result"]]), function(x) {
-          format_string(x, keep_caps)
-        }),
+        sapply(unique(df[["Result"]]), function(x) x),
         width = 20
       ),
       values = color_list
