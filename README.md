@@ -41,6 +41,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Changelog
 
+Version 0.1.6
+* Added function `pairwise_similarity` to calculate pairwise proportions of overlap between rows of a data.frame based on the features (columns) in the data.frame
+
 Version 0.1.5
 * Added parameters `drop_all_cases` and `drop_level` to `stratified_barplot` function to allow the "All Cases" group and certain levels to be dropped from plotting
 * Removed the calls to `format_string` and `keep_caps` parameters for plotting functions
