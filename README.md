@@ -41,6 +41,10 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Changelog
 
+Version 0.1.7
+* Fixed issue with `stratified_violin_boxplot` when `test = NULL`
+* Added `drop_all_cases` parameter to `stratified_violin_boxplot` to give the option to drop the "All Cases" group when it does not make sense to have it
+
 Version 0.1.6
 * Added function `pairwise_similarity` to calculate pairwise proportions of overlap between rows of a data.frame based on the features (columns) in the data.frame
 

@@ -26,6 +26,10 @@
 #' correction)
 #' @param alpha
 #' P-value threshold for significance. (default: 0.05)
+#' @param drop_all_cases
+#' Whether or not to drop the "All Cases" group for times when having this group
+#' included in the plot does not make sense (i.e., when not plotting individual
+#' or case-level data). (default: FALSE)
 #' @param save
 #' Whether to save the image to file. (default: FALSE)
 #' @param figwidth
@@ -54,6 +58,7 @@ stratified_violin_boxplot = function(
   test = "fisher.test",
   multi_test_correct = NULL,
   alpha = 0.05,
+  drop_all_cases = FALSE,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -94,11 +99,14 @@ stratified_violin_boxplot = function(
   #}
 
   # Define function for pairwise statistical testing
-  if (test == "t.test") {
-    pair.test = function(x, y) t.test(x, y, var.equal = FALSE)
-  }
-  if (test == "wilcox.test") {
-    pair.test = function(x, y) wilcox.test(x, y)
+  if (!is.null(test)) {
+    if (test == "t.test") {
+      pair.test = function(x, y) t.test(x, y, var.equal = FALSE)
+    } else if (test == "wilcox.test") {
+      pair.test = function(x, y) wilcox.test(x, y)
+    } else {
+      stop("ERROR: test must be either 't.test', 'wilcox.test', or NULL")
+    }
   }
 
   if (!is.null(groups)) {
@@ -124,37 +132,40 @@ stratified_violin_boxplot = function(
 
     # Perform pairwise statistical testing
     plot_annot = data.frame()
-    for (group1 in names(avg)) {
-      for (group2 in names(avg)) {
-        if (
-          group1 != group2 &
-            !(paste(group1, group2) %in%
-              paste(plot_annot[["Group1"]], plot_annot[["Group2"]])) &
-            !(paste(group1, group2) %in%
-              paste(plot_annot[["Group2"]], plot_annot[["Group1"]]))
-        ) {
-          res = pair.test(
-            df[[column]][df[[groups]] == group1],
-            df[[column]][df[[groups]] == group2]
-          )
-          plot_annot = rbind(
-            plot_annot,
-            data.frame(
-              Group1 = group1,
-              Group2 = group2,
-              p = res$p.value
+    if (!is.null(test)) {
+      plot_annot = data.frame()
+      for (group1 in names(avg)) {
+        for (group2 in names(avg)) {
+          if (
+            group1 != group2 &
+              !(paste(group1, group2) %in%
+                paste(plot_annot[["Group1"]], plot_annot[["Group2"]])) &
+              !(paste(group1, group2) %in%
+                paste(plot_annot[["Group2"]], plot_annot[["Group1"]]))
+          ) {
+            res = pair.test(
+              df[[column]][df[[groups]] == group1],
+              df[[column]][df[[groups]] == group2]
             )
-          )
+            plot_annot = rbind(
+              plot_annot,
+              data.frame(
+                Group1 = group1,
+                Group2 = group2,
+                p = res$p.value
+              )
+            )
+          }
         }
       }
-    }
 
-    # Perform multiple testing correction if specified
-    if (!is.null(multi_test_correct)) {
-      plot_annot[["p"]] = p.adjust(
-        plot_annot[["p"]],
-        method = multi_test_correct
-      )
+      # Perform multiple testing correction if specified
+      if (!is.null(multi_test_correct)) {
+        plot_annot[["p"]] = p.adjust(
+          plot_annot[["p"]],
+          method = multi_test_correct
+        )
+      }
     }
   } else {
     plot_df = data.frame()
@@ -162,39 +173,53 @@ stratified_violin_boxplot = function(
   }
 
   # Calculate counts and frequencies for all cases and add to plot data
-  n = length(na.omit(df[[column]]))
-  avg = round(mean(df[[column]], na.rm = TRUE), 1)
-  std = round(sd(df[[column]], na.rm = TRUE), 1)
-  avg_std = paste0(avg, "\u00B1", std)
-  plot_df = rbind(
-    data.frame(
-      group = "All Cases",
-      n = n,
-      avg = avg,
-      std_start = avg - std,
-      std_end = avg + std,
-      label = avg_std
-    ),
-    plot_df
-  )
-
-  # Make sure levels of grouping variable are the same as input
-  if (!is.null(groups)) {
-    plot_df[["group"]] = factor(
-      plot_df[["group"]],
-      levels = c("All Cases", names(table(df[[groups]])))
+  if (is.null(groups) | !drop_all_cases) {
+    n = length(na.omit(df[[column]]))
+    avg = round(mean(df[[column]], na.rm = TRUE), 1)
+    std = round(sd(df[[column]], na.rm = TRUE), 1)
+    avg_std = paste0(avg, "\u00B1", std)
+    plot_df = rbind(
+      data.frame(
+        group = "All Cases",
+        n = n,
+        avg = avg,
+        std_start = avg - std,
+        std_end = avg + std,
+        label = avg_std
+      ),
+      plot_df
     )
   }
 
-  # Need to double the data to get an all case group
+  # Make sure levels of grouping variable are the same as input
   if (!is.null(groups)) {
-    group_vec = factor(
-      c(rep("All Cases", nrow(df)), as.character(df[[groups]])),
-      levels = c("All Cases", names(table(as.character(df[[groups]]))))
-    )
-    y_vec = c(df[[column]], df[[column]])
+    if (!drop_all_cases) {
+      plot_df[["group"]] = factor(
+        plot_df[["group"]],
+        levels = c("All Cases", names(table(df[[groups]])))
+      )
+    } else {
+      plot_df[["group"]] = factor(
+        plot_df[["group"]],
+        levels = names(table(df[[groups]]))
+      )
+    }
+  }
+
+  # Need to double the data to get an all case group
+  if (!drop_all_cases) {
+    if (!is.null(groups)) {
+      group_vec = factor(
+        c(rep("All Cases", nrow(df)), as.character(df[[groups]])),
+        levels = c("All Cases", names(table(as.character(df[[groups]]))))
+      )
+      y_vec = c(df[[column]], df[[column]])
+    } else {
+      group_vec = factor(rep("All Cases", nrow(df)), levels = "All Cases")
+      y_vec = df[[column]]
+    }
   } else {
-    group_vec = factor(rep("All Cases", nrow(df)), levels = "All Cases")
+    group_vec = df[[groups]]
     y_vec = df[[column]]
   }
 
