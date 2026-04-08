@@ -29,7 +29,8 @@ Imports:
     rtracklayer,
     S4Vectors,
     SummarizedExperiment,
-    VariantAnnotation
+    VariantAnnotation,
+    Rcpp
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Depends: 
