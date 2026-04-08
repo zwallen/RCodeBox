@@ -29,54 +29,14 @@
 #'   \item Divides the number of equal entries by the number of valid comparisons.
 #' }
 #'
-#' The computation is vectorized across columns to improve performance for large
+#' The computation is performed in C++ via Rcpp to improve performance for large
 #' datasets.
 #'
 #' @export
 #'
 pairwise_similarity = function(df) {
-  # Get dimensions
-  n = nrow(df)
-  p = ncol(df)
-
-  # Create mask for NA values
-  na_mask = !is.na(df)
-
-  # Compare all rows at once making 3D array
-  equal_array = array(
-    unlist(lapply(seq_len(p), function(j) {
-      outer(df[, j], df[, j], `==`)
-    })),
-    dim = c(n, n, p)
-  )
-
-  # Count equality across columns
-  num_equal = apply(
-    equal_array,
-    1:2,
-    function(x) sum(x, na.rm = TRUE)
-  )
-
-  # Get the "valid" non-NA rows
-  valid_array = array(
-    unlist(lapply(seq_len(p), function(j) {
-      outer(na_mask[, j], na_mask[, j], `|`)
-    })),
-    dim = c(n, n, p)
-  )
-
-  # Calculate the denominators
-  denom = apply(valid_array, 1:2, sum)
-
-  # Calculate the proportions
-  prop_mat = num_equal / denom
-
-  # Mask diagonal
-  diag(prop_mat) = NA
-
-  # Assign original rownames to proportion matrix
-  rownames(prop_mat) = rownames(df)
-  colnames(prop_mat) = rownames(df)
-
-  return(prop_mat)
+  if (!is.matrix(df)) {
+    df = as.matrix(df)
+  }
+  pairwise_similarity_cpp(df)
 }

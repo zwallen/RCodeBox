@@ -35,6 +35,6 @@ For each pair of rows, the function:
 \item Divides the number of equal entries by the number of valid comparisons.
 }
 
-The computation is vectorized across columns to improve performance for large
+The computation is performed in C++ via Rcpp to improve performance for large
 datasets.
 }

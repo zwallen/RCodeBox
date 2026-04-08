@@ -13,6 +13,7 @@ stratified_violin_boxplot(
   test = "fisher.test",
   multi_test_correct = NULL,
   alpha = 0.05,
+  drop_all_cases = FALSE,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -39,6 +40,10 @@ that are accepted by the \code{p.adjust} function. (default is to perform no
 correction)}
 
 \item{alpha}{P-value threshold for significance. (default: 0.05)}
+
+\item{drop_all_cases}{Whether or not to drop the "All Cases" group for times when having this group
+included in the plot does not make sense (i.e., when not plotting individual
+or case-level data). (default: FALSE)}
 
 \item{save}{Whether to save the image to file. (default: FALSE)}
 
