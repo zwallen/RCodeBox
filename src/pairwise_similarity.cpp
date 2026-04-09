@@ -2,7 +2,7 @@
 using namespace Rcpp;
 
 // [[Rcpp::export]]
-NumericMatrix pairwise_similarity_cpp(NumericMatrix x) {
+NumericMatrix pairwise_similarity_cpp(CharacterMatrix x) {
 
   int n = x.nrow();
   int p = x.ncol();
@@ -19,8 +19,8 @@ NumericMatrix pairwise_similarity_cpp(NumericMatrix x) {
 
       for (int k = 0; k < p; k++) {
 
-        bool i_na = NumericMatrix::is_na(x(i, k));
-        bool j_na = NumericMatrix::is_na(x(j, k));
+        bool i_na = CharacterVector::is_na(x(i, k));
+        bool j_na = CharacterVector::is_na(x(j, k));
 
         if (!i_na || !j_na) {
           den++;

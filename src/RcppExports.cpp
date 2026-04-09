@@ -11,12 +11,12 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // pairwise_similarity_cpp
-NumericMatrix pairwise_similarity_cpp(NumericMatrix x);
+NumericMatrix pairwise_similarity_cpp(CharacterMatrix x);
 RcppExport SEXP _RCodeBox_pairwise_similarity_cpp(SEXP xSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
+    Rcpp::traits::input_parameter< CharacterMatrix >::type x(xSEXP);
     rcpp_result_gen = Rcpp::wrap(pairwise_similarity_cpp(x));
     return rcpp_result_gen;
 END_RCPP
