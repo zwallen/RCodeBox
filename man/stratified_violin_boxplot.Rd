@@ -14,6 +14,7 @@ stratified_violin_boxplot(
   multi_test_correct = NULL,
   alpha = 0.05,
   drop_all_cases = FALSE,
+  digits = 1,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -44,6 +45,8 @@ correction)}
 \item{drop_all_cases}{Whether or not to drop the "All Cases" group for times when having this group
 included in the plot does not make sense (i.e., when not plotting individual
 or case-level data). (default: FALSE)}
+
+\item{digits}{How many decimal places to round means and standard deviations to. (default: 1)}
 
 \item{save}{Whether to save the image to file. (default: FALSE)}
 

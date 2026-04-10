@@ -30,6 +30,8 @@
 #' Whether or not to drop the "All Cases" group for times when having this group
 #' included in the plot does not make sense (i.e., when not plotting individual
 #' or case-level data). (default: FALSE)
+#' @param digits
+#' How many decimal places to round means and standard deviations to. (default: 1)
 #' @param save
 #' Whether to save the image to file. (default: FALSE)
 #' @param figwidth
@@ -59,6 +61,7 @@ stratified_violin_boxplot = function(
   multi_test_correct = NULL,
   alpha = 0.05,
   drop_all_cases = FALSE,
+  digits = 1,
   save = FALSE,
   figwidth = 1000,
   figheight = 1000,
@@ -115,10 +118,10 @@ stratified_violin_boxplot = function(
       length(na.omit(df[[column]][df[[groups]] == x]))
     })
     avg = sapply(names(table(df[[groups]])), function(x) {
-      round(mean(df[[column]][df[[groups]] == x], na.rm = TRUE), 1)
+      round(mean(df[[column]][df[[groups]] == x], na.rm = TRUE), digits)
     })
     std = sapply(names(table(df[[groups]])), function(x) {
-      round(sd(df[[column]][df[[groups]] == x], na.rm = TRUE), 1)
+      round(sd(df[[column]][df[[groups]] == x], na.rm = TRUE), digits)
     })
     avg_std = paste0(avg, "\u00B1", std)
     plot_df = data.frame(
@@ -175,8 +178,8 @@ stratified_violin_boxplot = function(
   # Calculate counts and frequencies for all cases and add to plot data
   if (is.null(groups) | !drop_all_cases) {
     n = length(na.omit(df[[column]]))
-    avg = round(mean(df[[column]], na.rm = TRUE), 1)
-    std = round(sd(df[[column]], na.rm = TRUE), 1)
+    avg = round(mean(df[[column]], na.rm = TRUE), digits)
+    std = round(sd(df[[column]], na.rm = TRUE), digits)
     avg_std = paste0(avg, "\u00B1", std)
     plot_df = rbind(
       data.frame(
