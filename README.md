@@ -43,6 +43,7 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 Version 0.1.8
 * Added `digits` parameter to `stratified_violin_boxplot` function to control number of digits for means and standard deviations
+* Added `gene_matrix_sort` function
 
 Version 0.1.7
 * Fixed issue with `stratified_violin_boxplot` when `test = NULL`

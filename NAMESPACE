@@ -3,6 +3,7 @@
 export(composition_barplot)
 export(export_to_xlsx)
 export(format_string)
+export(gene_matrix_sort)
 export(kable_html_table)
 export(liftover_vcf)
 export(load_vcf_w_genes)

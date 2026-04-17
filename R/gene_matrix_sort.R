@@ -1,0 +1,56 @@
+#' Sort a gene-feature matrix by prevalence and sample exclusivity
+#'
+#' @description
+#' This function reorders a gene-by-sample matrix to emphasize patterns of
+#' prevalence and mutual exclusivity. Rows (genes) are first sorted in decreasing
+#' order by the number of samples with a non-missing, non-zero, and non-false
+#' value. Columns (samples) are then sorted based on a positional scoring scheme
+#' that prioritizes alterations occurring in higher-ranked genes, producing an
+#' ordering that highlights structured alteration patterns across samples.
+#'
+#' @param mat
+#' A matrix with genes as rows and samples as columns. Matrix entries are expected
+#' to encode the presence or absence of a feature (e.g., mutations), where values
+#' greater than zero, non-empty strings, and logical `TRUE` indicate presence.
+#' Missing values (`NA`), empty strings, zeros, or logical `FALSE` are treated as
+#' absence.
+#'
+#' @return
+#' A matrix with the same dimensions and values as `mat`, but with rows and columns
+#' reordered. Rows are sorted by decreasing feature prevalence, and columns are
+#' sorted by a weighted exclusivity score derived from the row ordering.
+#'
+#' @details
+#' The function proceeds in two stages:
+#' \itemize{
+#'   \item Rows are ordered by the number of samples in which the feature is
+#'   present, calculated as the count of non-missing, non-zero, and non-false
+#'   entries per row.
+#'   \item Columns are scored using a positional weighting scheme in which
+#'   features occurring in higher-ranked rows contribute more heavily to the
+#'   sample score. Columns are then sorted in decreasing order of this score.
+#' }
+#'
+#' This ordering strategy is commonly used for visualizing gene alteration
+#' matrices (e.g., oncoprints), where it is desirable to highlight mutually
+#' exclusive or co-occurring patterns across samples.
+#'
+#' @export
+#'
+gene_matrix_sort = function(mat) {
+  # Presence/absence mask
+  present = !is.na(mat) & mat != "" & mat > 0 & mat != FALSE
+
+  # Order genes (rows) by prevalence
+  gene_order = order(rowSums(present), decreasing = TRUE)
+
+  # Compute sample scores
+  weights = 2^rev(seq_len(nrow(mat)))
+  scores = colSums(present[gene_order, , drop = FALSE] * weights)
+
+  # Order samples (columns) by score
+  sample_order = order(scores, decreasing = TRUE)
+
+  # Return reordered matrix
+  mat[gene_order, sample_order, drop = FALSE]
+}
