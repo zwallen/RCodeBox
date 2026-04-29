@@ -12,12 +12,12 @@
 #' @param df
 #' Input dataframe containing the grouping variable, columns to summarize,
 #' and any optional covariates.
+#' @param columns
+#' Names of columns in `df` to summarize and test.
 #' @param groups
 #' Name of the grouping variable in `df`. Each unique value defines a group
 #' for stratified summaries and serves as the binary indicator (vs. all others)
 #' in the regression models.
-#' @param columns
-#' Names of columns in `df` to summarize and test.
 #' @param rename_dict
 #' Named list with optional mapping from original column names to display labels.
 #' If provided, `rename_dict[col]` is used in the "Variable" column of the output;
@@ -53,8 +53,8 @@
 #'
 stratified_stat_table = function(
   df,
-  groups,
   columns,
+  groups = NULL,
   rename_dict = NULL,
   covariates = NULL,
   keep_caps = NULL,
@@ -68,14 +68,19 @@ stratified_stat_table = function(
   }
 
   # Perform a few data checks
-  if (!(groups %in% colnames(df))) {
-    stop("ERROR: groups variable name was not found in column names of df")
-  }
   if (sum(columns %in% colnames(df)) != length(columns)) {
     stop("ERROR: some column names were not found in df")
   }
-  if (!(is.factor(df[[groups]]) | is.character(df[[groups]]))) {
-    stop("ERROR: groups variable is not a factor or character variable")
+  if (!is.null(groups)) {
+    if (!(groups %in% colnames(df))) {
+      stop("ERROR: groups variable name was not found in column names of df")
+    }
+    if (!(is.factor(df[[groups]]) | is.character(df[[groups]]))) {
+      stop("ERROR: groups variable is not a factor or character variable")
+    }
+    if (groups %in% columns) {
+      stop("ERROR: grouping variable was listed among the columns to analyze")
+    }
   }
   for (col in columns) {
     if (
@@ -87,9 +92,6 @@ stratified_stat_table = function(
         " is not a factor, character, or numeric variable"
       ))
     }
-  }
-  if (groups %in% columns) {
-    stop("ERROR: grouping variable was listed among the columns to analyze")
   }
 
   # For each column of interest, calculate summary statistics and
@@ -139,86 +141,88 @@ stratified_stat_table = function(
 
       # Calculate summary statistics stratified by grouping variable and
       # perform statistical testing with Firth's penalized logistic regression
-      if (col != groups) {
-        for (group in names(table(df[[groups]]))) {
-          group_res = data.frame()
+      if (!is.null(groups)) {
+        if (col != groups) {
+          for (group in names(table(df[[groups]]))) {
+            group_res = data.frame()
 
-          for (cat in names(table(df[[col]]))) {
-            # Create dummy variables
-            y = ifelse(df[[col]] == cat, 1, 0)
-            x = ifelse(df[[groups]] == group, 1, 0)
+            for (cat in names(table(df[[col]]))) {
+              # Create dummy variables
+              y = ifelse(df[[col]] == cat, 1, 0)
+              x = ifelse(df[[groups]] == group, 1, 0)
 
-            # Calculate summary statistics
-            n = table(y, x)
-            perc = apply(n, 2, function(x) round(x / sum(x) * 100, 1))
-            n_perc = data.frame(matrix(
-              paste0(n, " (", perc, "%)"),
-              nrow = nrow(n),
-              ncol = ncol(n)
-            ))
+              # Calculate summary statistics
+              n = table(y, x)
+              perc = apply(n, 2, function(x) round(x / sum(x) * 100, 1))
+              n_perc = data.frame(matrix(
+                paste0(n, " (", perc, "%)"),
+                nrow = nrow(n),
+                ncol = ncol(n)
+              ))
 
-            # Perform Firth's penalized logistic regression
-            if (!is.null(covariates)) {
-              x = cbind(x, df[, covariates])
+              # Perform Firth's penalized logistic regression
+              if (!is.null(covariates)) {
+                x = cbind(x, df[, covariates])
+              }
+              fit = logistf::logistf(y ~ ., data = data.frame(x))
+              coef = paste0(
+                round(exp(fit$coefficients[2]), 2),
+                " [",
+                round(exp(fit$ci.lower[2]), 2),
+                "; ",
+                round(exp(fit$ci.upper[2]), 2),
+                "]"
+              )
+              pval = fit$prob[2]
+
+              # If p-value is 0, manually calculate
+              if (pval == 0) {
+                zstat = fit$coefficients[2] / sqrt(diag(fit$var))[2]
+                pval = 2 * pnorm(abs(zstat), lower.tail = FALSE)
+              }
+
+              # Add results for group at current category
+              if (omics_mode) {
+                group_res = rbind(
+                  group_res,
+                  data.frame(
+                    n_perc[2, 2],
+                    Coef = round(exp(fit$coefficients[2]), 2),
+                    `Coef Lower` = round(exp(fit$ci.lower[2]), 2),
+                    `Coef Upper` = round(exp(fit$ci.upper[2]), 2),
+                    P = formatC(pval, digits = 2, format = "e"),
+                    check.names = FALSE
+                  )
+                )
+              } else {
+                group_res = rbind(
+                  group_res,
+                  data.frame(
+                    n_perc[2, 2],
+                    `Coef [95%CI]` = coef,
+                    P = formatC(pval, digits = 2, format = "e"),
+                    check.names = FALSE
+                  )
+                )
+              }
             }
-            fit = logistf::logistf(y ~ ., data = data.frame(x))
-            coef = paste0(
-              round(exp(fit$coefficients[2]), 2),
-              " [",
-              round(exp(fit$ci.lower[2]), 2),
-              "; ",
-              round(exp(fit$ci.upper[2]), 2),
-              "]"
+
+            # Remove one p-value if column only has 2 categories
+            if (nrow(group_res) == 2) {
+              group_res[1, "P"] = ""
+            }
+
+            # Add group name with total N
+            colnames(group_res)[1] = paste0(
+              format_string(group, keep_caps),
+              " (N=",
+              table(df[[groups]])[group],
+              ")"
             )
-            pval = fit$prob[2]
 
-            # If p-value is 0, manually calculate
-            if (pval == 0) {
-              zstat = fit$coefficients[2] / sqrt(diag(fit$var))[2]
-              pval = 2 * pnorm(abs(zstat), lower.tail = FALSE)
-            }
-
-            # Add results for group at current category
-            if (omics_mode) {
-              group_res = rbind(
-                group_res,
-                data.frame(
-                  n_perc[2, 2],
-                  Coef = round(exp(fit$coefficients[2]), 2),
-                  `Coef Lower` = round(exp(fit$ci.lower[2]), 2),
-                  `Coef Upper` = round(exp(fit$ci.upper[2]), 2),
-                  P = formatC(pval, digits = 2, format = "e"),
-                  check.names = FALSE
-                )
-              )
-            } else {
-              group_res = rbind(
-                group_res,
-                data.frame(
-                  n_perc[2, 2],
-                  `Coef [95%CI]` = coef,
-                  P = formatC(pval, digits = 2, format = "e"),
-                  check.names = FALSE
-                )
-              )
-            }
+            # Add group results
+            col_res = cbind(col_res, group_res)
           }
-
-          # Remove one p-value if column only has 2 categories
-          if (nrow(group_res) == 2) {
-            group_res[1, "P"] = ""
-          }
-
-          # Add group name with total N
-          colnames(group_res)[1] = paste0(
-            format_string(group, keep_caps),
-            " (N=",
-            table(df[[groups]])[group],
-            ")"
-          )
-
-          # Add group results
-          col_res = cbind(col_res, group_res)
         }
       }
     }
@@ -259,63 +263,65 @@ stratified_stat_table = function(
 
       # Calculate summary statistics stratified by grouping variable and
       # perform statistical testing with linear regression
-      for (group in names(table(df[[groups]]))) {
-        group_res = data.frame()
+      if (!is.null(groups)) {
+        for (group in names(table(df[[groups]]))) {
+          group_res = data.frame()
 
-        # Create dummy variables
-        y = df[[col]]
-        x = ifelse(df[[groups]] == group, 1, 0)
+          # Create dummy variables
+          y = df[[col]]
+          x = ifelse(df[[groups]] == group, 1, 0)
 
-        # Calculate summary statistics
-        avg = round(mean(y[x == 1], na.rm = TRUE), 1)
-        std = round(sd(y[x == 1], na.rm = TRUE), 1)
-        avg_std = paste0(avg, "\u00B1", std)
+          # Calculate summary statistics
+          avg = round(mean(y[x == 1], na.rm = TRUE), 1)
+          std = round(sd(y[x == 1], na.rm = TRUE), 1)
+          avg_std = paste0(avg, "\u00B1", std)
 
-        # Perform linear regression
-        if (!is.null(covariates)) {
-          x = cbind(x, df[, covariates])
-        }
-        fit = lm(y ~ ., data = data.frame(x))
-        ci = confint(fit)[2, ]
-        coef = paste0(
-          round(fit$coefficients[2], 2),
-          " [",
-          round(ci[1], 2),
-          "; ",
-          round(ci[2], 2),
-          "]"
-        )
-        pval = summary(fit)$coefficients[2, 4]
-
-        # Add results for group
-        if (omics_mode) {
-          group_res = data.frame(
-            avg_std,
-            Coef = round(fit$coefficients[2], 2),
-            `Coef Lower` = round(ci[1], 2),
-            `Coef Upper` = round(ci[2], 2),
-            P = formatC(pval, digits = 2, format = "e"),
-            check.names = FALSE
+          # Perform linear regression
+          if (!is.null(covariates)) {
+            x = cbind(x, df[, covariates])
+          }
+          fit = lm(y ~ ., data = data.frame(x))
+          ci = confint(fit)[2, ]
+          coef = paste0(
+            round(fit$coefficients[2], 2),
+            " [",
+            round(ci[1], 2),
+            "; ",
+            round(ci[2], 2),
+            "]"
           )
-        } else {
-          group_res = data.frame(
-            avg_std,
-            `Coef [95%CI]` = coef,
-            P = formatC(pval, digits = 2, format = "e"),
-            check.names = FALSE
+          pval = summary(fit)$coefficients[2, 4]
+
+          # Add results for group
+          if (omics_mode) {
+            group_res = data.frame(
+              avg_std,
+              Coef = round(fit$coefficients[2], 2),
+              `Coef Lower` = round(ci[1], 2),
+              `Coef Upper` = round(ci[2], 2),
+              P = formatC(pval, digits = 2, format = "e"),
+              check.names = FALSE
+            )
+          } else {
+            group_res = data.frame(
+              avg_std,
+              `Coef [95%CI]` = coef,
+              P = formatC(pval, digits = 2, format = "e"),
+              check.names = FALSE
+            )
+          }
+
+          # Add group name with total N
+          colnames(group_res)[1] = paste0(
+            format_string(group, keep_caps),
+            " (N=",
+            table(df[[groups]])[group],
+            ")"
           )
+
+          # Add group results
+          col_res = cbind(col_res, group_res)
         }
-
-        # Add group name with total N
-        colnames(group_res)[1] = paste0(
-          format_string(group, keep_caps),
-          " (N=",
-          table(df[[groups]])[group],
-          ")"
-        )
-
-        # Add group results
-        col_res = cbind(col_res, group_res)
       }
     }
 
@@ -325,14 +331,16 @@ stratified_stat_table = function(
 
   # If group variable only has two levels, remove first set of results
   # (it's only the reciprocal of the second results)
-  if (length(unique(na.omit(df[[groups]]))) == 2) {
-    idx = grep("Coef|P$", colnames(results))
-    results = results[, -idx[1:(length(idx) / length(unique(df[[groups]])))]]
+  if (!is.null(groups)) {
+    if (length(unique(na.omit(df[[groups]]))) == 2) {
+      idx = grep("Coef|P$", colnames(results))
+      results = results[, -idx[1:(length(idx) / length(unique(df[[groups]])))]]
+    }
   }
 
   # If results only include numeric variables (i.e., no categories), then
   # remove the categories column
-  if (sum(results[["Categories"]] == "-") == nrow(results)) {
+  if (sum(results$Categories == "-") == nrow(results)) {
     results = results[, -2]
   }
 

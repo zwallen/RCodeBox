@@ -6,8 +6,8 @@
 \usage{
 stratified_stat_table(
   df,
-  groups,
   columns,
+  groups = NULL,
   rename_dict = NULL,
   covariates = NULL,
   keep_caps = NULL,
@@ -18,11 +18,11 @@ stratified_stat_table(
 \item{df}{Input dataframe containing the grouping variable, columns to summarize,
 and any optional covariates.}
 
+\item{columns}{Names of columns in \code{df} to summarize and test.}
+
 \item{groups}{Name of the grouping variable in \code{df}. Each unique value defines a group
 for stratified summaries and serves as the binary indicator (vs. all others)
 in the regression models.}
-
-\item{columns}{Names of columns in \code{df} to summarize and test.}
 
 \item{rename_dict}{Named list with optional mapping from original column names to display labels.
 If provided, \code{rename_dict[col]} is used in the "Variable" column of the output;

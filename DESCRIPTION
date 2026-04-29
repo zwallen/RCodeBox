@@ -1,7 +1,7 @@
 Package: RCodeBox
 Type: Package
 Title: R Data Science Utilities
-Version: 0.1.8
+Version: 0.1.9
 Authors@R: person("Zachary Wallen", email = "zachary.d.wallen@gmail.com", role = c("aut", "cre"))
 Description: 
     A personal collection of R functions for commonly performed actions in

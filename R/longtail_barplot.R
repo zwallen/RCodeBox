@@ -133,7 +133,7 @@ longtail_barplot = function(
   ))
 
   # Make group levels be sorted by overall frequency
-  cat_order = overall_freq[["Var1"]]
+  cat_order = overall_freq$Var1
   plot_df[[groups]] = factor(plot_df[[groups]], levels = cat_order)
 
   # Make sure levels of column are the same as input
@@ -161,14 +161,14 @@ longtail_barplot = function(
 
   # Perform plotting
   ymax = max(
-    overall_freq[["Freq"]] +
-      nchar(paste0(round(overall_freq[["Freq"]] * 100, digits), "%")) / 100,
+    overall_freq$Freq +
+      nchar(paste0(round(overall_freq$Freq * 100, digits), "%")) / 100,
     na.rm = TRUE
   )
   g = ggplot2::ggplot(
     plot_df,
     ggplot2::aes(
-      y = .data[["Freq"]],
+      y = .data$Freq,
       x = .data[[groups]],
       fill = .data[[column]],
       color = .data[[column]]
@@ -179,7 +179,7 @@ longtail_barplot = function(
       inherit.aes = FALSE,
       data = overall_freq,
       stat = "identity",
-      ggplot2::aes(y = .data[["Freq"]], x = .data[["Var1"]]),
+      ggplot2::aes(y = .data$Freq, x = .data$Var1),
       alpha = 0,
       color = "black",
       linewidth = 0.2
@@ -188,9 +188,9 @@ longtail_barplot = function(
       inherit.aes = FALSE,
       data = overall_freq,
       ggplot2::aes(
-        y = .data[["Freq"]],
-        x = .data[["Var1"]],
-        label = paste0(round(.data[["Freq"]] * 100, digits), "%")
+        y = .data$Freq,
+        x = .data$Var1,
+        label = paste0(round(.data$Freq * 100, digits), "%")
       ),
       angle = ifelse(flip_plot, 0, 90),
       hjust = -0.1

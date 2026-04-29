@@ -200,7 +200,8 @@ composition_barplot = function(
             ggplot2::after_stat(count),
             " (",
             scales::percent(
-              ggplot2::after_stat(count) / tapply(count, x, sum)[x]
+              ggplot2::after_stat(count) / tapply(count, x, sum)[x],
+              accuracy = 0.1
             ),
             ")"
           )
@@ -271,6 +272,9 @@ composition_barplot = function(
     g = g +
       ggplot2::coord_flip() +
       ggplot2::theme(panel.spacing = grid::unit(1, "lines"))
+    if (!sort_groups) {
+      g = g + ggplot2::scale_x_discrete(limits = rev)
+    }
   }
 
   # Save plot to file if requested

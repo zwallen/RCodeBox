@@ -22,21 +22,22 @@ format_string = function(string, keep_caps = NULL) {
     stop("Package 'stringr' is required.")
   }
 
-  nocaps = "^and$|^but$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$|^Mean\u00B1SD$"
+  nocaps = "^and$|^but$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$"
   alwayscaps = paste0(
     "^II$|^III$|^IV$|^V$|^VI$|^VII$|^VIII$|^VIIII$|^X$",
     ifelse(!is.null(keep_caps), "|", ""),
     paste(keep_caps, collapse = "|")
   )
+  string_vec = unlist(stringr::str_split(string, " "))
   paste(
-    sapply(unlist(stringr::str_split(string, " ")), function(x) {
+    sapply(string_vec, function(x) {
       ifelse(
         grepl(nocaps, x, ignore.case = TRUE),
-        x,
+        tolower(x),
         ifelse(
           grepl(alwayscaps, x, ignore.case = TRUE),
           toupper(x),
-          stringr::str_to_title(x)
+          ifelse(which(x == string_vec) == 1, stringr::str_to_title(x), x)
         )
       )
     }),

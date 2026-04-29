@@ -10,7 +10,7 @@ stratified_violin_boxplot(
   groups = NULL,
   ylab = NULL,
   xlab = NULL,
-  test = "fisher.test",
+  test = "wilcox.test",
   multi_test_correct = NULL,
   alpha = 0.05,
   drop_all_cases = FALSE,

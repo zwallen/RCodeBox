@@ -177,19 +177,23 @@ for (col in columns) {
   }
 }
 
+# Make race and ethnicity categories title case
+test_data$race = stringr::str_to_title(test_data$race)
+test_data$ethnicity = stringr::str_to_title(test_data$ethnicity)
+
 # Simplify staging information
-test_data[["ajcc_pathologic_stage"]] = factor(
+test_data$ajcc_pathologic_stage = factor(
   dplyr::case_when(
-    grepl("Stage IV", test_data[["ajcc_pathologic_stage"]]) ~ "Stage IV",
-    grepl("Stage III", test_data[["ajcc_pathologic_stage"]]) ~ "Stage III",
-    grepl("Stage II", test_data[["ajcc_pathologic_stage"]]) ~ "Stage II",
-    grepl("Stage I", test_data[["ajcc_pathologic_stage"]]) ~ "Stage I",
+    grepl("Stage IV", test_data$ajcc_pathologic_stage) ~ "Stage IV",
+    grepl("Stage III", test_data$ajcc_pathologic_stage) ~ "Stage III",
+    grepl("Stage II", test_data$ajcc_pathologic_stage) ~ "Stage II",
+    grepl("Stage I", test_data$ajcc_pathologic_stage) ~ "Stage I",
     .default = NA
   )
 )
 
 # Build and display table
-results = stratified_stat_table(test_data, groups, columns, rename_dict)
+results = stratified_stat_table(test_data, columns, groups, rename_dict)
 kable_html_table(results, bold_columns = c(1, 2))
 ```
 
@@ -237,7 +241,7 @@ columns = c(columns, "name")
 rename_dict["name"] = "Cancer Type"
 
 # Create needed grouping variable
-ensgid = gex_data[["gene_id"]][gex_data[["gene_name"]] == "CD274"]
+ensgid = gex_data$gene_id[gex_data$gene_name == "CD274"]
 quantiles = quantile(unlist(as.vector(gex_tpm[ensgid, ])))
 test_data[[groups]] = factor(
   dplyr::case_when(
@@ -255,7 +259,7 @@ test_data[[groups]] = factor(
 )
 
 # Build and display table
-results = stratified_stat_table(test_data, groups, columns, rename_dict)
+results = stratified_stat_table(test_data, columns, groups, rename_dict)
 kable_html_table(results, bold_columns = c(1, 2))
 ```
 
@@ -281,8 +285,8 @@ covariates = "name"
 # Build and display table
 results_adj = stratified_stat_table(
   test_data,
-  groups,
   columns,
+  groups,
   rename_dict,
   covariates
 )
@@ -528,7 +532,7 @@ See @fig-6 for the results.
 #| label: plot-6
 
 # Create needed grouping variables
-ensgid = gex_data[["gene_id"]][grepl("MAGE|GAGE|SSX", gex_data[["gene_name"]])]
+ensgid = gex_data$gene_id[grepl("MAGE|GAGE|SSX", gex_data$gene_name)]
 for (id in ensgid) {
   x = unlist(as.vector(gex_tpm[id, ]))
   quantiles = quantile(x[x > 0]) # Getting quantiles on non-zero data due to sparsity
@@ -570,7 +574,7 @@ g = composition_barplot(
   xlab = "CTA Genes",
   legendlab = "Gene Expression Level",
   color_list = RColorBrewer::brewer.pal(
-    length(levels(long_data[["level"]])),
+    length(levels(long_data$level)),
     "Blues"
   ),
   save = TRUE,
@@ -597,7 +601,7 @@ g = composition_barplot(
   xlab = "CTA Genes",
   legendlab = "Gene Expression Level",
   color_list = RColorBrewer::brewer.pal(
-    length(levels(long_data[["level"]])),
+    length(levels(long_data$level)),
     "Blues"
   ),
   flip_plot = TRUE,
@@ -618,10 +622,10 @@ We can also add another grouping on the bars themselves to break them up into me
 #| label: plot-8
 
 # Add variable denoting gene family
-long_data[["gene_family"]] = dplyr::case_when(
-  grepl("MAGE", long_data[["genes"]]) ~ "MAGE",
-  grepl("GAGE", long_data[["genes"]]) ~ "GAGE",
-  grepl("SSX", long_data[["genes"]]) ~ "SSX",
+long_data$gene_family = dplyr::case_when(
+  grepl("MAGE", long_data$genes) ~ "MAGE",
+  grepl("GAGE", long_data$genes) ~ "GAGE",
+  grepl("SSX", long_data$genes) ~ "SSX",
   .default = NA
 )
 
@@ -635,7 +639,7 @@ g = composition_barplot(
   xlab = "CTA Genes",
   legendlab = "Gene Expression Level",
   color_list = RColorBrewer::brewer.pal(
-    length(levels(long_data[["level"]])),
+    length(levels(long_data$level)),
     "Blues"
   ),
   flip_plot = TRUE,
@@ -673,7 +677,7 @@ g = longtail_barplot(
   xlab = "CTA Genes",
   legendlab = "Gene Expression Level",
   color_list = RColorBrewer::brewer.pal(
-    length(levels(long_data[["level"]])) - 1,
+    length(levels(long_data$level)) - 1,
     "Blues"
   ),
   save = TRUE,
@@ -719,7 +723,7 @@ gex_test_data = data.frame(t(gex_counts))
 gex_test_data = gex_test_data[,
   colSums(gex_test_data > 0) > (0.5 * nrow(gex_test_data)) &
     colnames(gex_test_data) %in%
-      gex_data[["gene_id"]][gex_data[["gene_type"]] == "protein_coding"]
+      gex_data$gene_id[gex_data$gene_type == "protein_coding"]
 ]
 gex_test_data = data.frame(t(apply(gex_test_data, 1, function(x) {
   log(x + 1) - mean(log(x + 1))
@@ -736,21 +740,21 @@ groups = "name"
 columns = colnames(gex_test_data)[-ncol(gex_test_data)]
 
 # Define named list to rename variables by
-rename_dict = as.list(gex_data[["gene_name"]])
-names(rename_dict) = gex_data[["gene_id"]]
+rename_dict = as.list(gex_data$gene_name)
+names(rename_dict) = gex_data$gene_id
 
 # Run analysis
 results = stratified_stat_table(
   gex_test_data,
-  groups,
   columns,
+  groups,
   rename_dict,
   omics_mode = TRUE
 )
 
 # Display significant results
-sig_results = results[as.numeric(results[["FDR"]]) < 0.05, ]
-sig_results = sig_results[order(as.numeric(sig_results[["P"]])), ]
+sig_results = results[as.numeric(results$FDR) < 0.05, ]
+sig_results = sig_results[order(as.numeric(sig_results$P)), ]
 DT::datatable(sig_results, rownames = FALSE)
 ```
 

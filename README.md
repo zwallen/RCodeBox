@@ -41,6 +41,12 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Changelog
 
+Version 0.1.9
+* Fixed handling of data when `groups` is `NULL` in the `stratified_stat_table` function
+* Modified `format_string` function so that it capitalizes only the first word of a string (i.e., sentence case)
+* Fixed sorting of groups in `composition_barplot` function when flipping plot to stay in same order as when plot is horizontal
+* Made a few other minor fixes to multiple functions
+
 Version 0.1.8
 * Added `digits` parameter to `stratified_violin_boxplot` function to control number of digits for means and standard deviations
 * Added `gene_matrix_sort` function
