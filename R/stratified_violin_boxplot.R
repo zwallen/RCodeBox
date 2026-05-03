@@ -234,7 +234,10 @@ stratified_violin_boxplot = function(
     data.frame(group = group_vec, y = y_vec)[
       !is.na(data.frame(group = group_vec, y = y_vec)$group),
     ],
-    ggplot2::aes(y = .data$y, x = .data$group)
+    ggplot2::aes(
+      y = .data$y,
+      x = factor(.data$group, levels = levels(plot_df$group))
+    )
   ) +
     ggplot2::geom_violin(na.rm = TRUE, color = "black", fill = "grey") +
     ggplot2::geom_boxplot(
