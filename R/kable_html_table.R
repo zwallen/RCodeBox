@@ -38,9 +38,9 @@
 #' @importFrom kableExtra kbl kable_styling column_spec row_spec
 #' @export
 #'
-kable_html_table = function(
-  df, 
-  bold_columns = 1, 
+kable_html_table <- function(
+  df,
+  bold_columns = 1,
   row_border_pattern = "N \\(%\\)|Mean\u00B1SD",
   col_border_pattern = "N=",
   stat_pattern = "Coef \\[",
@@ -51,7 +51,7 @@ kable_html_table = function(
   }
 
   # Begin table
-  tbl = kableExtra::kbl(
+  tbl <- kableExtra::kbl(
     df,
     row.names = FALSE,
     align = "c", # Center align all columns
@@ -59,17 +59,17 @@ kable_html_table = function(
   )
 
   # Begin styling, freezing first row
-  tbl = kableExtra::kable_styling(
+  tbl <- kableExtra::kable_styling(
     tbl,
     fixed_thead = TRUE,
     bootstrap_options = "none"
   )
 
   # Bold first N columns
-  tbl = kableExtra::column_spec(tbl, column = bold_columns, bold = TRUE)
+  tbl <- kableExtra::column_spec(tbl, column = bold_columns, bold = TRUE)
 
   # Specify font size and borders of header row
-  tbl = kableExtra::row_spec(
+  tbl <- kableExtra::row_spec(
     tbl,
     row = 0,
     extra_css = paste0(
@@ -81,21 +81,21 @@ kable_html_table = function(
   )
 
   # Add border to top of rows with specified pattern
-  tbl = kableExtra::row_spec(
+  tbl <- kableExtra::row_spec(
     tbl,
     row = grep(row_border_pattern, df[[1]]),
     extra_css = "border-top: 1px solid #000000ff;"
   )
 
   # Add border to bottom of table
-  tbl = kableExtra::row_spec(
+  tbl <- kableExtra::row_spec(
     tbl,
     row = nrow(df),
     extra_css = "border-bottom: 2px solid #000000ff;"
   )
 
   # Add borders to left of columns with specified pattern
-  tbl = kableExtra::column_spec(
+  tbl <- kableExtra::column_spec(
     tbl,
     column = grep(col_border_pattern, colnames(df)),
     extra_css = "border-left: 1px solid #000000ff;"
@@ -103,7 +103,7 @@ kable_html_table = function(
 
   # Add border to left of column with "Coef" if only one exists
   if (sum(grepl("Coef \\[", colnames(df))) == 1) {
-    tbl = kableExtra::column_spec(
+    tbl <- kableExtra::column_spec(
       tbl,
       column = grep("Coef \\[", colnames(df)),
       extra_css = "border-left: 1px solid #000000ff;"
@@ -113,7 +113,7 @@ kable_html_table = function(
   # For each column, make minimum width the max character length in column and
   # specify font size for remaining values
   for (col in seq_len(ncol(df))) {
-    tbl = kableExtra::column_spec(
+    tbl <- kableExtra::column_spec(
       tbl,
       column = col,
       width_min = paste0(max(nchar(as.character(df[[col]]))) + 5, "ch"),
@@ -121,5 +121,5 @@ kable_html_table = function(
     )
   }
 
-  return(tbl)
+  tbl
 }

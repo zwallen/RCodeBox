@@ -52,7 +52,7 @@
 #' @importFrom grid unit
 #' @export
 #'
-longtail_barplot = function(
+longtail_barplot <- function(
   df,
   groups,
   column,
@@ -87,65 +87,68 @@ longtail_barplot = function(
   }
   if (!(negative_value %in% names(table(df[[column]], exclude = FALSE)))) {
     stop(
-      "ERROR: negative value provided was not found in the variable given to column"
+      paste(
+        "ERROR: negative value provided was not found",
+        "in the variable given to column"
+      )
     )
   }
-  if (!(is.factor(df[[groups]]) | is.character(df[[groups]]))) {
+  if (!(is.factor(df[[groups]]) || is.character(df[[groups]]))) {
     stop("ERROR: groups variable is not a factor or character variable")
   }
-  if (!(is.factor(df[[column]]) | is.character(df[[column]]))) {
+  if (!(is.factor(df[[column]]) || is.character(df[[column]]))) {
     stop("ERROR: column variable is not a factor or character variable")
   }
 
   # Make copy of data
-  plot_df = df
+  plot_df <- df
 
   # Mask specified "negative" values
-  plot_df[[column]] = as.character(plot_df[[column]])
+  plot_df[[column]] <- as.character(plot_df[[column]])
   if (!is.na(negative_value)) {
-    plot_df[[column]][plot_df[[column]] == negative_value] = NA
+    plot_df[[column]][plot_df[[column]] == negative_value] <- NA
   }
 
   # Calculate overall frequencies for groups
-  n = sort(
+  n <- sort(
     table(plot_df[[groups]][!is.na(plot_df[[column]])]),
     decreasing = TRUE
   )
-  perc = n / table(plot_df[[groups]])[names(n)]
-  overall_freq = data.frame(perc)
+  perc <- n / table(plot_df[[groups]])[names(n)]
+  overall_freq <- data.frame(perc)
 
   # Calculate within group frequencies
-  n = table(plot_df[[column]], plot_df[[groups]])
-  perc = data.frame(sapply(1:ncol(n), function(x) {
+  n <- table(plot_df[[column]], plot_df[[groups]])
+  perc <- data.frame(sapply(seq_len(ncol(n)), function(x) {
     n[, x] / table(plot_df[[groups]])[x]
   }))
-  colnames(perc) = colnames(n)
-  plot_df = tidyr::pivot_longer(
+  colnames(perc) <- colnames(n)
+  plot_df <- tidyr::pivot_longer(
     perc,
     cols = tidyselect::everything(),
     names_to = groups,
     values_to = "Freq"
   )
-  plot_df[[column]] = unlist(sapply(
+  plot_df[[column]] <- unlist(sapply(
     rownames(n),
     function(x) rep(x, ncol(n)),
     simplify = FALSE
   ))
 
   # Make group levels be sorted by overall frequency
-  cat_order = overall_freq$Var1
-  plot_df[[groups]] = factor(plot_df[[groups]], levels = cat_order)
+  cat_order <- overall_freq$Var1
+  plot_df[[groups]] <- factor(plot_df[[groups]], levels = cat_order)
 
   # Make sure levels of column are the same as input
   if (!is.na(negative_value)) {
-    plot_df[[column]] = factor(
+    plot_df[[column]] <- factor(
       plot_df[[column]],
       levels = names(table(df[[column]]))[
         names(table(df[[column]])) != negative_value
       ]
     )
   } else {
-    plot_df[[column]] = factor(
+    plot_df[[column]] <- factor(
       plot_df[[column]],
       levels = names(table(df[[column]]))
     )
@@ -153,19 +156,19 @@ longtail_barplot = function(
 
   # Create color vector for plotting if one was not provided
   if (is.null(color_list)) {
-    color_list = RColorBrewer::brewer.pal(
+    color_list <- RColorBrewer::brewer.pal(
       length(levels(plot_df[[column]])),
       "Set2"
     )
   }
 
   # Perform plotting
-  ymax = max(
+  ymax <- max(
     overall_freq$Freq +
       nchar(paste0(round(overall_freq$Freq * 100, digits), "%")) / 100,
     na.rm = TRUE
   )
-  g = ggplot2::ggplot(
+  g <- ggplot2::ggplot(
     plot_df,
     ggplot2::aes(
       y = .data$Freq,
@@ -233,7 +236,7 @@ longtail_barplot = function(
 
   # Flip plot if specified
   if (flip_plot) {
-    g = g +
+    g <- g +
       ggplot2::scale_x_discrete(limits = rev) +
       ggplot2::coord_flip(ylim = c(0, ymax + 0.05), clip = "off") +
       ggplot2::theme(panel.spacing = grid::unit(1, "lines"))
@@ -250,5 +253,5 @@ longtail_barplot = function(
     )
   }
 
-  return(g)
+  g
 }

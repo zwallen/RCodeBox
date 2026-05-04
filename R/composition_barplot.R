@@ -62,7 +62,7 @@
 #' @importFrom grid unit
 #' @export
 #'
-composition_barplot = function(
+composition_barplot <- function(
   df,
   groups,
   column,
@@ -94,59 +94,60 @@ composition_barplot = function(
   if (!(column %in% colnames(df))) {
     stop("ERROR: column variable name was not found in df")
   }
-  if (!(is.factor(df[[groups]]) | is.character(df[[groups]]))) {
+  if (!(is.factor(df[[groups]]) || is.character(df[[groups]]))) {
     stop("ERROR: groups variable is not a factor or character variable")
   }
-  if (!(is.factor(df[[column]]) | is.character(df[[column]]))) {
+  if (!(is.factor(df[[column]]) || is.character(df[[column]]))) {
     stop("ERROR: column variable is not a factor or character variable")
   }
 
   # Remove any missing observations
-  if (!is.null(subrows) & !is.null(subcols)) {
-    plot_df = df[
+  if (!is.null(subrows) && !is.null(subcols)) {
+    plot_df <- df[
       rowSums(is.na(df[, c(groups, column, subrows, subcols)])) == 0,
     ]
-  } else if (!is.null(subrows) & is.null(subcols)) {
-    plot_df = df[rowSums(is.na(df[, c(groups, column, subrows)])) == 0, ]
-  } else if (is.null(subrows) & !is.null(subcols)) {
-    plot_df = df[rowSums(is.na(df[, c(groups, column, subcols)])) == 0, ]
+  } else if (!is.null(subrows) && is.null(subcols)) {
+    plot_df <- df[rowSums(is.na(df[, c(groups, column, subrows)])) == 0, ]
+  } else if (is.null(subrows) && !is.null(subcols)) {
+    plot_df <- df[rowSums(is.na(df[, c(groups, column, subcols)])) == 0, ]
   } else {
-    plot_df = df[rowSums(is.na(df[, c(groups, column)])) == 0, ]
+    plot_df <- df[rowSums(is.na(df[, c(groups, column)])) == 0, ]
   }
 
   # Detect most prevalent category to plot and sort on its prevalence
   if (sort_groups) {
-    top_cat = names(sort(table(plot_df[[column]]), decreasing = TRUE))[1]
-    cat_order = names(sort(
-      table(plot_df[[groups]], plot_df[[column]])[,
+    top_cat <- names(sort(table(plot_df[[column]]), decreasing = TRUE))[1]
+    cat_order <- names(sort(
+      table(plot_df[[groups]], plot_df[[column]])[
+        ,
         top_cat
       ],
       decreasing = flip_plot
     ))
-    plot_df[[groups]] = factor(plot_df[[groups]], levels = cat_order)
+    plot_df[[groups]] <- factor(plot_df[[groups]], levels = cat_order)
   } else {
-    plot_df[[groups]] = factor(
+    plot_df[[groups]] <- factor(
       plot_df[[groups]],
       levels = names(table(df[[groups]]))
     )
   }
 
   # Make sure levels of column are the same as input
-  plot_df[[column]] = factor(
+  plot_df[[column]] <- factor(
     plot_df[[column]],
     levels = names(table(df[[column]]))
   )
 
   # Create color vector for plotting if one was not provided
   if (is.null(color_list)) {
-    color_list = RColorBrewer::brewer.pal(
+    color_list <- RColorBrewer::brewer.pal(
       length(levels(plot_df[[column]])),
       "Set2"
     )
   }
 
   # Perform plotting
-  g = ggplot2::ggplot(
+  g <- ggplot2::ggplot(
     plot_df,
     ggplot2::aes(
       x = .data[[groups]],
@@ -185,7 +186,7 @@ composition_barplot = function(
       legend.key.spacing.y = grid::unit(0.2, "lines")
     )
   if (!add_labels) {
-    g = g +
+    g <- g +
       ggplot2::theme(
         axis.text.x = ggplot2::element_text(angle = 90, hjust = 1, vjust = 0.5)
       )
@@ -193,7 +194,7 @@ composition_barplot = function(
 
   # Add lables if specified
   if (add_labels) {
-    g = g +
+    g <- g +
       ggplot2::geom_text(
         ggplot2::aes(
           label = paste0(
@@ -210,12 +211,12 @@ composition_barplot = function(
         position = ggplot2::position_fill(vjust = 0.5),
         color = "black"
       )
-    g$layers[[1]]$aes_params$colour = "black"
+    g$layers[[1]]$aes_params$colour <- "black"
   }
 
   # Add bar groupings if specified
-  if (!is.null(subrows) & !is.null(subcols)) {
-    g = g +
+  if (!is.null(subrows) && !is.null(subcols)) {
+    g <- g +
       ggplot2::facet_grid(
         rows = ggplot2::vars(.data[[subrows]]),
         cols = ggplot2::vars(.data[[subcols]]),
@@ -231,8 +232,8 @@ composition_barplot = function(
         )
       )
   }
-  if (!is.null(subrows) & is.null(subcols)) {
-    g = g +
+  if (!is.null(subrows) && is.null(subcols)) {
+    g <- g +
       ggplot2::facet_grid(
         rows = ggplot2::vars(.data[[subrows]]),
         scales = "free",
@@ -244,8 +245,8 @@ composition_barplot = function(
         )
       )
   }
-  if (is.null(subrows) & !is.null(subcols)) {
-    g = g +
+  if (is.null(subrows) && !is.null(subcols)) {
+    g <- g +
       ggplot2::facet_grid(
         cols = ggplot2::vars(.data[[subcols]]),
         scales = "free",
@@ -260,7 +261,7 @@ composition_barplot = function(
 
   # Remove x-axis text and tick marks if specified
   if (remove_xaxis_text) {
-    g = g +
+    g <- g +
       ggplot2::theme(
         axis.text.x = ggplot2::element_blank(),
         axis.ticks.x = ggplot2::element_blank()
@@ -269,11 +270,11 @@ composition_barplot = function(
 
   # Flip plot if specified
   if (flip_plot) {
-    g = g +
+    g <- g +
       ggplot2::coord_flip() +
       ggplot2::theme(panel.spacing = grid::unit(1, "lines"))
     if (!sort_groups) {
-      g = g + ggplot2::scale_x_discrete(limits = rev)
+      g <- g + ggplot2::scale_x_discrete(limits = rev)
     }
   }
 
@@ -288,5 +289,5 @@ composition_barplot = function(
     )
   }
 
-  return(g)
+  g
 }

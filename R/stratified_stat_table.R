@@ -51,7 +51,7 @@
 #' @importFrom tibble add_column
 #' @export
 #'
-stratified_stat_table = function(
+stratified_stat_table <- function(
   df,
   columns,
   groups = NULL,
@@ -75,7 +75,7 @@ stratified_stat_table = function(
     if (!(groups %in% colnames(df))) {
       stop("ERROR: groups variable name was not found in column names of df")
     }
-    if (!(is.factor(df[[groups]]) | is.character(df[[groups]]))) {
+    if (!(is.factor(df[[groups]]) || is.character(df[[groups]]))) {
       stop("ERROR: groups variable is not a factor or character variable")
     }
     if (groups %in% columns) {
@@ -84,7 +84,9 @@ stratified_stat_table = function(
   }
   for (col in columns) {
     if (
-      !(is.factor(df[[col]]) | is.character(df[[col]]) | is.numeric(df[[col]]))
+      !(is.factor(df[[col]]) ||
+        is.character(df[[col]]) ||
+        is.numeric(df[[col]]))
     ) {
       stop(paste0(
         "ERROR: ",
@@ -96,18 +98,18 @@ stratified_stat_table = function(
 
   # For each column of interest, calculate summary statistics and
   # and test for differences between groups
-  results = data.frame()
+  results <- data.frame()
   for (col in columns) {
-    col_res = data.frame()
+    col_res <- data.frame()
 
-    if (is.factor(df[[col]]) | is.character(df[[col]])) {
+    if (is.factor(df[[col]]) || is.character(df[[col]])) {
       # Calculate summary statistics for total cases
-      n = table(df[[col]])
-      perc = round(n / sum(n) * 100, 1)
-      n_perc = paste0(n, " (", perc, "%)")
+      n <- table(df[[col]])
+      perc <- round(n / sum(n) * 100, 1)
+      n_perc <- paste0(n, " (", perc, "%)")
 
       # Add to results
-      col_res = rbind(
+      col_res <- rbind(
         col_res,
         data.frame(
           Variable = sapply(
@@ -137,24 +139,24 @@ stratified_stat_table = function(
       )
 
       # Add total N to total case column name
-      colnames(col_res)[ncol(col_res)] = paste0("Total (N=", nrow(df), ")")
+      colnames(col_res)[ncol(col_res)] <- paste0("Total (N=", nrow(df), ")")
 
       # Calculate summary statistics stratified by grouping variable and
       # perform statistical testing with Firth's penalized logistic regression
       if (!is.null(groups)) {
         if (col != groups) {
           for (group in names(table(df[[groups]]))) {
-            group_res = data.frame()
+            group_res <- data.frame()
 
             for (cat in names(table(df[[col]]))) {
               # Create dummy variables
-              y = ifelse(df[[col]] == cat, 1, 0)
-              x = ifelse(df[[groups]] == group, 1, 0)
+              y <- ifelse(df[[col]] == cat, 1, 0)
+              x <- ifelse(df[[groups]] == group, 1, 0)
 
               # Calculate summary statistics
-              n = table(y, x)
-              perc = apply(n, 2, function(x) round(x / sum(x) * 100, 1))
-              n_perc = data.frame(matrix(
+              n <- table(y, x)
+              perc <- apply(n, 2, function(x) round(x / sum(x) * 100, 1))
+              n_perc <- data.frame(matrix(
                 paste0(n, " (", perc, "%)"),
                 nrow = nrow(n),
                 ncol = ncol(n)
@@ -162,10 +164,10 @@ stratified_stat_table = function(
 
               # Perform Firth's penalized logistic regression
               if (!is.null(covariates)) {
-                x = cbind(x, df[, covariates])
+                x <- cbind(x, df[, covariates])
               }
-              fit = logistf::logistf(y ~ ., data = data.frame(x))
-              coef = paste0(
+              fit <- logistf::logistf(y ~ ., data = data.frame(x))
+              coef <- paste0(
                 round(exp(fit$coefficients[2]), 2),
                 " [",
                 round(exp(fit$ci.lower[2]), 2),
@@ -173,17 +175,17 @@ stratified_stat_table = function(
                 round(exp(fit$ci.upper[2]), 2),
                 "]"
               )
-              pval = fit$prob[2]
+              pval <- fit$prob[2]
 
               # If p-value is 0, manually calculate
               if (pval == 0) {
-                zstat = fit$coefficients[2] / sqrt(diag(fit$var))[2]
-                pval = 2 * pnorm(abs(zstat), lower.tail = FALSE)
+                zstat <- fit$coefficients[2] / sqrt(diag(fit$var))[2]
+                pval <- 2 * pnorm(abs(zstat), lower.tail = FALSE)
               }
 
               # Add results for group at current category
               if (omics_mode) {
-                group_res = rbind(
+                group_res <- rbind(
                   group_res,
                   data.frame(
                     n_perc[2, 2],
@@ -195,7 +197,7 @@ stratified_stat_table = function(
                   )
                 )
               } else {
-                group_res = rbind(
+                group_res <- rbind(
                   group_res,
                   data.frame(
                     n_perc[2, 2],
@@ -209,11 +211,11 @@ stratified_stat_table = function(
 
             # Remove one p-value if column only has 2 categories
             if (nrow(group_res) == 2) {
-              group_res[1, "P"] = ""
+              group_res[1, "P"] <- ""
             }
 
             # Add group name with total N
-            colnames(group_res)[1] = paste0(
+            colnames(group_res)[1] <- paste0(
               format_string(group, keep_caps),
               " (N=",
               table(df[[groups]])[group],
@@ -221,7 +223,7 @@ stratified_stat_table = function(
             )
 
             # Add group results
-            col_res = cbind(col_res, group_res)
+            col_res <- cbind(col_res, group_res)
           }
         }
       }
@@ -229,12 +231,12 @@ stratified_stat_table = function(
 
     if (is.numeric(df[[col]])) {
       # Calculate summary statistics for total cases
-      avg = round(mean(df[[col]], na.rm = TRUE), 1)
-      std = round(sd(df[[col]], na.rm = TRUE), 1)
-      avg_std = paste0(avg, "\u00B1", std)
+      avg <- round(mean(df[[col]], na.rm = TRUE), 1)
+      std <- round(sd(df[[col]], na.rm = TRUE), 1)
+      avg_std <- paste0(avg, "\u00B1", std)
 
       # Add to results
-      col_res = rbind(
+      col_res <- rbind(
         col_res,
         data.frame(
           Variable = sapply(
@@ -259,30 +261,30 @@ stratified_stat_table = function(
       )
 
       # Add total N to total case column name
-      colnames(col_res)[ncol(col_res)] = paste0("Total (N=", nrow(df), ")")
+      colnames(col_res)[ncol(col_res)] <- paste0("Total (N=", nrow(df), ")")
 
       # Calculate summary statistics stratified by grouping variable and
       # perform statistical testing with linear regression
       if (!is.null(groups)) {
         for (group in names(table(df[[groups]]))) {
-          group_res = data.frame()
+          group_res <- data.frame()
 
           # Create dummy variables
-          y = df[[col]]
-          x = ifelse(df[[groups]] == group, 1, 0)
+          y <- df[[col]]
+          x <- ifelse(df[[groups]] == group, 1, 0)
 
           # Calculate summary statistics
-          avg = round(mean(y[x == 1], na.rm = TRUE), 1)
-          std = round(sd(y[x == 1], na.rm = TRUE), 1)
-          avg_std = paste0(avg, "\u00B1", std)
+          avg <- round(mean(y[x == 1], na.rm = TRUE), 1)
+          std <- round(sd(y[x == 1], na.rm = TRUE), 1)
+          avg_std <- paste0(avg, "\u00B1", std)
 
           # Perform linear regression
           if (!is.null(covariates)) {
-            x = cbind(x, df[, covariates])
+            x <- cbind(x, df[, covariates])
           }
-          fit = lm(y ~ ., data = data.frame(x))
-          ci = confint(fit)[2, ]
-          coef = paste0(
+          fit <- lm(y ~ ., data = data.frame(x))
+          ci <- confint(fit)[2, ]
+          coef <- paste0(
             round(fit$coefficients[2], 2),
             " [",
             round(ci[1], 2),
@@ -290,11 +292,11 @@ stratified_stat_table = function(
             round(ci[2], 2),
             "]"
           )
-          pval = summary(fit)$coefficients[2, 4]
+          pval <- summary(fit)$coefficients[2, 4]
 
           # Add results for group
           if (omics_mode) {
-            group_res = data.frame(
+            group_res <- data.frame(
               avg_std,
               Coef = round(fit$coefficients[2], 2),
               `Coef Lower` = round(ci[1], 2),
@@ -303,7 +305,7 @@ stratified_stat_table = function(
               check.names = FALSE
             )
           } else {
-            group_res = data.frame(
+            group_res <- data.frame(
               avg_std,
               `Coef [95%CI]` = coef,
               P = formatC(pval, digits = 2, format = "e"),
@@ -312,7 +314,7 @@ stratified_stat_table = function(
           }
 
           # Add group name with total N
-          colnames(group_res)[1] = paste0(
+          colnames(group_res)[1] <- paste0(
             format_string(group, keep_caps),
             " (N=",
             table(df[[groups]])[group],
@@ -320,34 +322,34 @@ stratified_stat_table = function(
           )
 
           # Add group results
-          col_res = cbind(col_res, group_res)
+          col_res <- cbind(col_res, group_res)
         }
       }
     }
 
     # Add current column results to full results
-    results = rbind(results, col_res)
+    results <- rbind(results, col_res)
   }
 
   # If group variable only has two levels, remove first set of results
   # (it's only the reciprocal of the second results)
   if (!is.null(groups)) {
     if (length(unique(na.omit(df[[groups]]))) == 2) {
-      idx = grep("Coef|P$", colnames(results))
-      results = results[, -idx[1:(length(idx) / length(unique(df[[groups]])))]]
+      idx <- grep("Coef|P$", colnames(results))
+      results <- results[, -idx[1:(length(idx) / length(unique(df[[groups]])))]]
     }
   }
 
   # If results only include numeric variables (i.e., no categories), then
   # remove the categories column
   if (sum(results$Categories == "-") == nrow(results)) {
-    results = results[, -2]
+    results <- results[, -2]
   }
 
   # Perform multiple testing correction if omics mode is on
   if (omics_mode) {
     for (i in grep("P$", colnames(results))) {
-      results = tibble::add_column(
+      results <- tibble::add_column(
         results,
         FDR = formatC(
           p.adjust(as.numeric(results[[i]]), method = "fdr"),
@@ -360,7 +362,7 @@ stratified_stat_table = function(
   }
 
   # Do one final removal of suffixes to same column names if added
-  colnames(results) = gsub("\\.[0-9]+", "", colnames(results))
+  colnames(results) <- gsub("\\.[0-9]+", "", colnames(results))
 
-  return(results)
+  results
 }

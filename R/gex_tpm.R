@@ -22,7 +22,7 @@
 #' @seealso \code{\link{gex_counts}}, \code{\link{gex_data}}, \code{\link{clinical_data}}
 #'
 #' @usage data(gex_tpm)
-#' 
+#'
 #' @examples
 #' data(gex_tpm)
 #' summary(as.numeric(gex_tpm[, 1]))

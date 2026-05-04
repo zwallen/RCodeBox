@@ -37,19 +37,19 @@
 #'
 #' @export
 #'
-gene_matrix_sort = function(mat) {
+gene_matrix_sort <- function(mat) {
   # Presence/absence mask
-  present = !is.na(mat) & mat != "" & mat > 0 & mat != FALSE
+  present <- !is.na(mat) & mat != "" & mat > 0 & mat != FALSE
 
   # Order genes (rows) by prevalence
-  gene_order = order(rowSums(present), decreasing = TRUE)
+  gene_order <- order(rowSums(present), decreasing = TRUE)
 
   # Compute sample scores
-  weights = 2^rev(seq_len(nrow(mat)))
-  scores = colSums(present[gene_order, , drop = FALSE] * weights)
+  weights <- 2^rev(seq_len(nrow(mat)))
+  scores <- colSums(present[gene_order, , drop = FALSE] * weights)
 
   # Order samples (columns) by score
-  sample_order = order(scores, decreasing = TRUE)
+  sample_order <- order(scores, decreasing = TRUE)
 
   # Return reordered matrix
   mat[gene_order, sample_order, drop = FALSE]

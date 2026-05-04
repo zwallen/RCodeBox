@@ -39,7 +39,7 @@
 #' @importFrom openxlsx loadWorkbook createWorkbook removeWorksheet addWorksheet writeData createStyle addStyle setColWidths saveWorkbook
 #' @export
 #'
-export_to_xlsx = function(
+export_to_xlsx <- function(
   df,
   out_path,
   sheet,
@@ -53,14 +53,14 @@ export_to_xlsx = function(
   }
 
   # Get boundaries of table
-  row_limit = nrow(df)
-  col_limit = ncol(df)
+  row_limit <- nrow(df)
+  col_limit <- ncol(df)
 
   # Load or create workbook
   if (file.exists(out_path)) {
-    wb = openxlsx::loadWorkbook(out_path)
+    wb <- openxlsx::loadWorkbook(out_path)
   } else {
-    wb = openxlsx::createWorkbook()
+    wb <- openxlsx::createWorkbook()
   }
 
   # Add worksheet or rewrite if already present
@@ -201,7 +201,7 @@ export_to_xlsx = function(
   if (!is.null(numeric_columns)) {
     for (col in which(colnames(df) %in% numeric_columns)) {
       for (row in seq_len(row_limit)) {
-        cell_value = as.numeric(as.character(df[row, col]))
+        cell_value <- as.numeric(as.character(df[row, col]))
         if (!is.na(cell_value)) {
           openxlsx::writeData(
             wb,

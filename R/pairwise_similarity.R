@@ -34,9 +34,9 @@
 #'
 #' @export
 #'
-pairwise_similarity = function(df) {
+pairwise_similarity <- function(df) {
   if (!is.matrix(df)) {
-    df = as.matrix(df)
+    df <- as.matrix(df)
   }
   pairwise_similarity_cpp(df)
 }

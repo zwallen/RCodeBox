@@ -51,7 +51,7 @@
 #' @importFrom stats t.test wilcox.test p.adjust
 #' @export
 #'
-stratified_violin_boxplot = function(
+stratified_violin_boxplot <- function(
   df,
   column,
   groups = NULL,
@@ -85,28 +85,28 @@ stratified_violin_boxplot = function(
     if (!(groups %in% colnames(df))) {
       stop("ERROR: groups variable name was not found in column names of df")
     }
-    if (!(is.factor(df[[groups]]) | is.character(df[[groups]]))) {
+    if (!(is.factor(df[[groups]]) || is.character(df[[groups]]))) {
       stop("ERROR: groups variable is not a factor or character variable")
     }
   }
 
   #### Not implemented yet, but should put a check in for how many columns in plot
   #### and give error if there are too many
-  #n_cols = length(unique(na.omit(df[[groups]]))) + 1
-  #if (n_cols > ...) {
+  # n_cols = length(unique(na.omit(df[[groups]]))) + 1
+  # if (n_cols > ...) {
   #  stop(paste0(
   #    "ERROR: number of columns in plot will be ",
   #    n_cols,
   #    ", which is too many to include in this type of plot"
   #  ))
-  #}
+  # }
 
   # Define function for pairwise statistical testing
   if (!is.null(test)) {
     if (test == "t.test") {
-      pair.test = function(x, y) t.test(x, y, var.equal = FALSE)
+      pair.test <- function(x, y) t.test(x, y, var.equal = FALSE)
     } else if (test == "wilcox.test") {
-      pair.test = function(x, y) wilcox.test(x, y)
+      pair.test <- function(x, y) wilcox.test(x, y)
     } else {
       stop("ERROR: test must be either 't.test', 'wilcox.test', or NULL")
     }
@@ -114,17 +114,17 @@ stratified_violin_boxplot = function(
 
   if (!is.null(groups)) {
     # Calculate average and standard deviations for groups
-    n = sapply(names(table(df[[groups]])), function(x) {
+    n <- sapply(names(table(df[[groups]])), function(x) {
       length(na.omit(df[[column]][df[[groups]] == x]))
     })
-    avg = sapply(names(table(df[[groups]])), function(x) {
+    avg <- sapply(names(table(df[[groups]])), function(x) {
       round(mean(df[[column]][df[[groups]] == x], na.rm = TRUE), digits)
     })
-    std = sapply(names(table(df[[groups]])), function(x) {
+    std <- sapply(names(table(df[[groups]])), function(x) {
       round(sd(df[[column]][df[[groups]] == x], na.rm = TRUE), digits)
     })
-    avg_std = paste0(avg, "\u00B1", std)
-    plot_df = data.frame(
+    avg_std <- paste0(avg, "\u00B1", std)
+    plot_df <- data.frame(
       group = names(avg),
       n = n,
       avg = avg,
@@ -134,23 +134,23 @@ stratified_violin_boxplot = function(
     )
 
     # Perform pairwise statistical testing
-    plot_annot = data.frame()
+    plot_annot <- data.frame()
     if (!is.null(test)) {
-      plot_annot = data.frame()
+      plot_annot <- data.frame()
       for (group1 in names(avg)) {
         for (group2 in names(avg)) {
           if (
-            group1 != group2 &
+            group1 != group2 &&
               !(paste(group1, group2) %in%
-                paste(plot_annot$Group1, plot_annot$Group2)) &
+                paste(plot_annot$Group1, plot_annot$Group2)) &&
               !(paste(group1, group2) %in%
                 paste(plot_annot$Group2, plot_annot$Group1))
           ) {
-            res = pair.test(
+            res <- pair.test(
               df[[column]][df[[groups]] == group1],
               df[[column]][df[[groups]] == group2]
             )
-            plot_annot = rbind(
+            plot_annot <- rbind(
               plot_annot,
               data.frame(
                 Group1 = group1,
@@ -164,24 +164,24 @@ stratified_violin_boxplot = function(
 
       # Perform multiple testing correction if specified
       if (!is.null(multi_test_correct)) {
-        plot_annot$p = p.adjust(
+        plot_annot$p <- p.adjust(
           plot_annot$p,
           method = multi_test_correct
         )
       }
     }
   } else {
-    plot_df = data.frame()
-    plot_annot = data.frame()
+    plot_df <- data.frame()
+    plot_annot <- data.frame()
   }
 
   # Calculate counts and frequencies for all cases and add to plot data
-  if (is.null(groups) | !drop_all_cases) {
-    n = length(na.omit(df[[column]]))
-    avg = round(mean(df[[column]], na.rm = TRUE), digits)
-    std = round(sd(df[[column]], na.rm = TRUE), digits)
-    avg_std = paste0(avg, "\u00B1", std)
-    plot_df = rbind(
+  if (is.null(groups) || !drop_all_cases) {
+    n <- length(na.omit(df[[column]]))
+    avg <- round(mean(df[[column]], na.rm = TRUE), digits)
+    std <- round(sd(df[[column]], na.rm = TRUE), digits)
+    avg_std <- paste0(avg, "\u00B1", std)
+    plot_df <- rbind(
       data.frame(
         group = "All Cases",
         n = n,
@@ -197,12 +197,12 @@ stratified_violin_boxplot = function(
   # Make sure levels of grouping variable are the same as input
   if (!is.null(groups)) {
     if (!drop_all_cases) {
-      plot_df$group = factor(
+      plot_df$group <- factor(
         plot_df$group,
         levels = c("All Cases", names(table(df[[groups]])))
       )
     } else {
-      plot_df$group = factor(
+      plot_df$group <- factor(
         plot_df$group,
         levels = names(table(df[[groups]]))
       )
@@ -212,25 +212,25 @@ stratified_violin_boxplot = function(
   # Need to double the data to get an all case group
   if (!drop_all_cases) {
     if (!is.null(groups)) {
-      group_vec = factor(
+      group_vec <- factor(
         c(rep("All Cases", nrow(df)), as.character(df[[groups]])),
         levels = c("All Cases", names(table(as.character(df[[groups]]))))
       )
-      y_vec = c(df[[column]], df[[column]])
+      y_vec <- c(df[[column]], df[[column]])
     } else {
-      group_vec = factor(rep("All Cases", nrow(df)), levels = "All Cases")
-      y_vec = df[[column]]
+      group_vec <- factor(rep("All Cases", nrow(df)), levels = "All Cases")
+      y_vec <- df[[column]]
     }
   } else {
-    group_vec = df[[groups]]
-    y_vec = df[[column]]
+    group_vec <- df[[groups]]
+    y_vec <- df[[column]]
   }
 
   # Perform plotting
-  ymin = min(y_vec, na.rm = TRUE)
-  ymax = max(y_vec, na.rm = TRUE)
+  ymin <- min(y_vec, na.rm = TRUE)
+  ymax <- max(y_vec, na.rm = TRUE)
   set.seed(1234)
-  g = ggplot2::ggplot(
+  g <- ggplot2::ggplot(
     data.frame(group = group_vec, y = y_vec)[
       !is.na(data.frame(group = group_vec, y = y_vec)$group),
     ],
@@ -295,13 +295,13 @@ stratified_violin_boxplot = function(
     )
 
   # Add statistical testing annotations if requested
-  if (!is.null(test) & nrow(plot_annot) > 0) {
-    plot_annot = plot_annot[plot_annot$p < alpha, ]
+  if (!is.null(test) && nrow(plot_annot) > 0) {
+    plot_annot <- plot_annot[plot_annot$p < alpha, ]
     if (nrow(plot_annot) > 0) {
-      y_position = sapply(1:nrow(plot_annot), function(x) {
+      y_position <- sapply(seq_len(nrow(plot_annot)), function(x) {
         ymax + (x * (ymax / 20))
       })
-      g = g +
+      g <- g +
         ggsignif::geom_signif(
           inherit.aes = FALSE,
           data = plot_annot,
@@ -329,5 +329,5 @@ stratified_violin_boxplot = function(
     )
   }
 
-  return(g)
+  g
 }

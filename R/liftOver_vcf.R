@@ -23,7 +23,7 @@
 #' @importFrom SummarizedExperiment rowRanges
 #' @export
 #'
-liftover_vcf = function(vcf, chain_path) {
+liftover_vcf <- function(vcf, chain_path) {
   if (!requireNamespace("GenomeInfoDb", quietly = TRUE)) {
     stop("Package 'GenomeInfoDb' is required.")
   }
@@ -39,26 +39,26 @@ liftover_vcf = function(vcf, chain_path) {
 
   # Check to make sure seqlevel type is UCSC
   if (!GenomeInfoDb::seqlevelsStyle(vcf) == "UCSC") {
-    GenomeInfoDb::seqlevelsStyle(vcf) = "UCSC"
+    GenomeInfoDb::seqlevelsStyle(vcf) <- "UCSC"
   }
 
   # Import chain file
-  chain = rtracklayer::import.chain(chain_path)
+  chain <- rtracklayer::import.chain(chain_path)
 
   # Perform liftover
-  lifted_ranges = rtracklayer::liftOver(
+  lifted_ranges <- rtracklayer::liftOver(
     SummarizedExperiment::rowRanges(vcf),
     chain
   )
 
   # Get variants that mapped to only one range
-  idx = S4Vectors::elementNROWS(lifted_ranges) == 1
-  lifted_ranges = unlist(lifted_ranges[idx])
+  idx <- S4Vectors::elementNROWS(lifted_ranges) == 1
+  lifted_ranges <- unlist(lifted_ranges[idx])
 
   # Filter VCF for successfully mapped variants
-  vcf_new = vcf[idx, ]
+  vcf_new <- vcf[idx, ]
 
   # Add newly updated ranges and return updated VCF
-  SummarizedExperiment::rowRanges(vcf_new) = lifted_ranges
+  SummarizedExperiment::rowRanges(vcf_new) <- lifted_ranges
   vcf_new
 }

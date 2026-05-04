@@ -29,7 +29,7 @@
 #' @importFrom S4Vectors DataFrame
 #' @export
 #'
-load_vcf_w_genes = function(
+load_vcf_w_genes <- function(
   vcf_path,
   output_path = NULL,
   GRCh = NULL,
@@ -49,14 +49,14 @@ load_vcf_w_genes = function(
   }
 
   # Load VCF and get variant ranges
-  vcf = VariantAnnotation::readVcf(vcf_path)
-  variant_ranges = SummarizedExperiment::rowRanges(vcf)
+  vcf <- VariantAnnotation::readVcf(vcf_path)
+  variant_ranges <- SummarizedExperiment::rowRanges(vcf)
 
   # Connect to Ensembl BioMart
-  mart = biomaRt::useEnsembl("genes", "hsapiens_gene_ensembl", GRCh = GRCh)
+  mart <- biomaRt::useEnsembl("genes", "hsapiens_gene_ensembl", GRCh = GRCh)
 
   # Get gene positions and HGNC symbols from BioMart
-  gene_df = biomaRt::getBM(
+  gene_df <- biomaRt::getBM(
     attributes = c(
       "chromosome_name",
       "start_position",
@@ -67,13 +67,13 @@ load_vcf_w_genes = function(
   )
 
   # Remove entries with missing HGNC symbols and antisense genes (if requested)
-  gene_df = gene_df[gene_df$hgnc_symbol != "", ]
+  gene_df <- gene_df[gene_df$hgnc_symbol != "", ]
   if (exclude_antisense) {
-    gene_df = gene_df[!grepl("-AS[0-9]*$", gene_df$hgnc_symbol), ]
+    gene_df <- gene_df[!grepl("-AS[0-9]*$", gene_df$hgnc_symbol), ]
   }
 
   # Create a GRanges object from gene information
-  gene_annotation = GenomicRanges::makeGRangesFromDataFrame(
+  gene_annotation <- GenomicRanges::makeGRangesFromDataFrame(
     gene_df,
     seqnames.field = "chromosome_name",
     start.field = "start_position",
@@ -84,15 +84,15 @@ load_vcf_w_genes = function(
   # Match seqlevels style of genes to the variants
   GenomeInfoDb::seqlevelsStyle(
     gene_annotation
-  ) = GenomeInfoDb::seqlevelsStyle(variant_ranges)
+  ) <- GenomeInfoDb::seqlevelsStyle(variant_ranges)
 
   # Find overlapping genomic positions between genes and variants
-  overlaps = suppressWarnings(
+  overlaps <- suppressWarnings(
     GenomicRanges::findOverlaps(variant_ranges, gene_annotation)
   )
 
   # Annotate variants with gene names
-  variant_gene_list = split(
+  variant_gene_list <- split(
     S4Vectors::mcols(gene_annotation)[[
       "hgnc_symbol"
     ]][S4Vectors::subjectHits(overlaps)],
@@ -100,15 +100,15 @@ load_vcf_w_genes = function(
   )
 
   # Prepare a character vector of gene symbols for each variant
-  gene_symbols = rep(NA, length(variant_ranges))
-  gene_symbols[as.integer(names(variant_gene_list))] = sapply(
+  gene_symbols <- rep(NA, length(variant_ranges))
+  gene_symbols[as.integer(names(variant_gene_list))] <- sapply(
     variant_gene_list,
     function(x) paste(unique(x), collapse = ",")
   )
 
   # Add header information for HGNC annotation and
   # add HGNC annotation to INFO fields
-  VariantAnnotation::info(VariantAnnotation::header(vcf)) = rbind(
+  VariantAnnotation::info(VariantAnnotation::header(vcf)) <- rbind(
     VariantAnnotation::info(VariantAnnotation::header(vcf)),
     S4Vectors::DataFrame(
       Number = "1",
@@ -117,11 +117,11 @@ load_vcf_w_genes = function(
       row.names = "HGNC"
     )
   )
-  VariantAnnotation::info(vcf)$HGNC = gene_symbols
+  VariantAnnotation::info(vcf)$HGNC <- gene_symbols
 
   # Output
   if (is.null(output_path)) {
-    return(vcf)
+    vcf
   } else {
     VariantAnnotation::writeVcf(vcf, output_path)
   }

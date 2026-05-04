@@ -17,18 +17,18 @@
 #' @importFrom stringr str_split str_to_title
 #' @export
 #'
-format_string = function(string, keep_caps = NULL) {
+format_string <- function(string, keep_caps = NULL) {
   if (!requireNamespace("stringr", quietly = TRUE)) {
     stop("Package 'stringr' is required.")
   }
 
-  nocaps = "^and$|^but$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$"
-  alwayscaps = paste0(
+  nocaps <- "^and$|^but$|^or$|^at$|^in$|^of$|^the$|^for$|^by$|^to$|^with$"
+  alwayscaps <- paste0(
     "^II$|^III$|^IV$|^V$|^VI$|^VII$|^VIII$|^VIIII$|^X$",
     ifelse(!is.null(keep_caps), "|", ""),
     paste(keep_caps, collapse = "|")
   )
-  string_vec = unlist(stringr::str_split(string, " "))
+  string_vec <- unlist(stringr::str_split(string, " "))
   paste(
     sapply(string_vec, function(x) {
       ifelse(

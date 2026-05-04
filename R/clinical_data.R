@@ -1,4 +1,3 @@
-
 #' Clinical data for TCGA COAD/READ cases
 #'
 #' Patient-level demographics and clinical annotations for \strong{TCGA-COAD}
@@ -52,7 +51,7 @@
 #' Data. \emph{New England Journal of Medicine} 375:1109–1112.
 #'
 #' @usage data(clinical_data)
-#' 
+#'
 #' @examples
 #' data(clinical_data)
 #' head(clinical_data)

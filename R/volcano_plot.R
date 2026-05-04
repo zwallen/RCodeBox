@@ -64,7 +64,7 @@
 #' @importFrom grid unit
 #' @export
 #'
-volcano_plot = function(
+volcano_plot <- function(
   df,
   variable,
   coef,
@@ -99,16 +99,16 @@ volcano_plot = function(
   if (!(pvalue %in% colnames(df))) {
     stop("ERROR: name of p-value column was not found in df")
   }
-  if (!(is.factor(df[[variable]]) | is.character(df[[variable]]))) {
+  if (!(is.factor(df[[variable]]) || is.character(df[[variable]]))) {
     stop("ERROR: variable name column is not a factor or character variable")
   }
   if (!(is.numeric(df[[coef]]))) {
     warning("WARNING: coefficient column was not numeric and will be converted")
-    df[[coef]] = as.numeric(df[[coef]])
+    df[[coef]] <- as.numeric(df[[coef]])
   }
   if (!(is.numeric(df[[pvalue]]))) {
     warning("WARNING: p-value column was not numeric and will be converted")
-    df[[pvalue]] = as.numeric(df[[pvalue]])
+    df[[pvalue]] <- as.numeric(df[[pvalue]])
   }
   if (sum(df[[pvalue]] == 0) > 0) {
     stop(paste0(
@@ -123,8 +123,8 @@ volcano_plot = function(
   }
 
   # Add column for designating significant results
-  coef_mid = ifelse(min(df[[coef]], na.rm = TRUE) < 0, 0, 1)
-  df$Result = ifelse(
+  coef_mid <- ifelse(min(df[[coef]], na.rm = TRUE) < 0, 0, 1)
+  df$Result <- ifelse(
     df[[coef]] < coef_mid & df[[pvalue]] < alpha,
     ifelse(
       !is.null(first_group_name),
@@ -189,16 +189,16 @@ volcano_plot = function(
 
   # Add label column for labeling significant results and mask all but the
   # top N significant results
-  df$label = ifelse(df[[pvalue]] < alpha, df[[variable]], NA)
-  df = df[order(df[[pvalue]]), ]
-  df$label[df[[coef]] < coef_mid][-c(1:top_n)] = NA
-  df$label[df[[coef]] > coef_mid][-c(1:top_n)] = NA
+  df$label <- ifelse(df[[pvalue]] < alpha, df[[variable]], NA)
+  df <- df[order(df[[pvalue]]), ]
+  df$label[df[[coef]] < coef_mid][-c(1:top_n)] <- NA
+  df$label[df[[coef]] > coef_mid][-c(1:top_n)] <- NA
 
   # Create color vector for plotting if one was not provided
   if (is.null(color_list)) {
-    color_list = c("blue", "red", "grey")
+    color_list <- c("blue", "red", "grey")
   }
-  names(color_list) = c(
+  names(color_list) <- c(
     unique(df$Result[df[[coef]] < coef_mid & df[[pvalue]] < alpha]),
     unique(df$Result[df[[coef]] > coef_mid & df[[pvalue]] < alpha]),
     unique(df$Result[df[[pvalue]] >= alpha])
@@ -206,12 +206,12 @@ volcano_plot = function(
 
   # Transform p-value if specified
   if (transform_pvalue) {
-    df[[pvalue]] = -log10(df[[pvalue]])
+    df[[pvalue]] <- -log10(df[[pvalue]])
   }
 
   # Perform plotting
   set.seed(1234)
-  g = ggplot2::ggplot(
+  g <- ggplot2::ggplot(
     df,
     ggplot2::aes(x = .data[[coef]], y = .data[[pvalue]])
   ) +
@@ -262,5 +262,5 @@ volcano_plot = function(
     )
   }
 
-  return(g)
+  g
 }
