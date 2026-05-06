@@ -218,10 +218,7 @@ stratified_barplot <- function(
 
   # Create color vector for plotting if one was not provided
   if (is.null(color_list)) {
-    color_list <- RColorBrewer::brewer.pal(
-      length(levels(plot_df$Var1)),
-      "Set2"
-    )
+    color_list <- generate_color_palette(length(levels(plot_df$Var1)))
   }
 
   # Drop any specified levels

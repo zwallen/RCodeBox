@@ -118,10 +118,7 @@ composition_barplot <- function(
   if (sort_groups) {
     top_cat <- names(sort(table(plot_df[[column]]), decreasing = TRUE))[1]
     cat_order <- names(sort(
-      table(plot_df[[groups]], plot_df[[column]])[
-        ,
-        top_cat
-      ],
+      table(plot_df[[groups]], plot_df[[column]])[, top_cat],
       decreasing = flip_plot
     ))
     plot_df[[groups]] <- factor(plot_df[[groups]], levels = cat_order)
@@ -140,10 +137,7 @@ composition_barplot <- function(
 
   # Create color vector for plotting if one was not provided
   if (is.null(color_list)) {
-    color_list <- RColorBrewer::brewer.pal(
-      length(levels(plot_df[[column]])),
-      "Set2"
-    )
+    color_list <- generate_color_palette(length(levels(plot_df[[column]])))
   }
 
   # Perform plotting

@@ -41,6 +41,14 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Changelog
 
+Version 0.2.0
+* Started using Claude Code to assist in package maintaining,
+* Added following functions
+    - `pie_chart`: function for plotting a pie chart with labels
+    - `us_map_scatterpie`: function for plotting scatter pie charts overlaid on the US map (including AK and HI)
+    - `generate_color_palette`: function for creating color palettes with automatically handling of variables with really large Ns (used within other plotting functions)
+* Replaced portions of existing functions with `generate_color_palette`
+
 Version 0.1.9
 * Fixed handling of data when `groups` is `NULL` in the `stratified_stat_table` function
 * Modified `format_string` function so that it capitalizes only the first word of a string (i.e., sentence case)

@@ -1,7 +1,7 @@
 Package: RCodeBox
 Type: Package
 Title: R Data Science Utilities
-Version: 0.1.9
+Version: 0.2.0
 Authors@R: person("Zachary Wallen", email = "zachary.d.wallen@gmail.com", role = c("aut", "cre"))
 Description: 
     A personal collection of R functions for commonly performed actions in
@@ -30,7 +30,10 @@ Imports:
     S4Vectors,
     SummarizedExperiment,
     VariantAnnotation,
-    Rcpp
+    Rcpp,
+    sf,
+    USAboundaries,
+    scatterpie
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Depends: 
