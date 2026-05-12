@@ -14,7 +14,6 @@
 #' @return
 #' A formatted character string.
 #'
-#' @importFrom stringr str_split str_to_title
 #' @export
 #'
 format_string <- function(string, keep_caps = NULL) {

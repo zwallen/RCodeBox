@@ -21,12 +21,6 @@
 #' If `output_path` is `NULL`, an annotated `VariantAnnotation::VCF` object;
 #' otherwise nothing is returned and annotated VCF is written to `output_path`.
 #'
-#' @importFrom VariantAnnotation readVcf writeVcf info header
-#' @importFrom SummarizedExperiment rowRanges
-#' @importFrom biomaRt useEnsembl getBM
-#' @importFrom GenomicRanges makeGRangesFromDataFrame findOverlaps mcols
-#' @importFrom GenomeInfoDb seqlevelsStyle
-#' @importFrom S4Vectors DataFrame
 #' @export
 #'
 load_vcf_w_genes <- function(
@@ -46,6 +40,12 @@ load_vcf_w_genes <- function(
   }
   if (!requireNamespace("GenomeInfoDb", quietly = TRUE)) {
     stop("Package 'GenomeInfoDb' is required.")
+  }
+  if (!requireNamespace("GenomicRanges", quietly = TRUE)) {
+    stop("Package 'GenomicRanges' is required.")
+  }
+  if (!requireNamespace("S4Vectors", quietly = TRUE)) {
+    stop("Package 'S4Vectors' is required.")
   }
 
   # Load VCF and get variant ranges
@@ -67,9 +67,9 @@ load_vcf_w_genes <- function(
   )
 
   # Remove entries with missing HGNC symbols and antisense genes (if requested)
-  gene_df <- gene_df[gene_df$hgnc_symbol != "", ]
+  gene_df <- gene_df[gene_df[["hgnc_symbol"]] != "", ]
   if (exclude_antisense) {
-    gene_df <- gene_df[!grepl("-AS[0-9]*$", gene_df$hgnc_symbol), ]
+    gene_df <- gene_df[!grepl("-AS[0-9]*$", gene_df[["hgnc_symbol"]]), ]
   }
 
   # Create a GRanges object from gene information
@@ -117,7 +117,7 @@ load_vcf_w_genes <- function(
       row.names = "HGNC"
     )
   )
-  VariantAnnotation::info(vcf)$HGNC <- gene_symbols
+  VariantAnnotation::info(vcf)[["HGNC"]] <- gene_symbols
 
   # Output
   if (is.null(output_path)) {

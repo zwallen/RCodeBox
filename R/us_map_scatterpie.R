@@ -39,8 +39,6 @@
 #' @return
 #' A `ggplot2` figure object. If save is `TRUE`, also exports the image to file.
 #'
-#' @import ggplot2
-#' @importFrom tidyr pivot_wider
 #' @importFrom stats aggregate as.formula
 #' @export
 #'
@@ -97,11 +95,11 @@ us_map_scatterpie <- function(
   colnames(plot_df)[ncol(plot_df)] <- "count"
 
   # Calculate frequencies within each state
-  plot_df$freq <- unlist(sapply(
+  plot_df[["freq"]] <- unlist(sapply(
     unique(plot_df[[state_column]]),
     function(x) {
-      plot_df$count[plot_df[[state_column]] == x] /
-        sum(plot_df$count[plot_df[[state_column]] == x])
+      plot_df[["count"]][plot_df[[state_column]] == x] /
+        sum(plot_df[["count"]][plot_df[[state_column]] == x])
     }
   ))
 
@@ -116,19 +114,19 @@ us_map_scatterpie <- function(
   # Get US map geometry and reproject to US Albers Equal Area
   states <- sf::st_transform(USAboundaries::us_states(resolution = "low"), 5070)
   states <- states[
-    !(states$stusps %in% c("PR", "VI", "GU", "MP", "AS")),
+    !(states[["stusps"]] %in% c("PR", "VI", "GU", "MP", "AS")),
     c("stusps", "geometry")
   ]
 
   # Modify Alaska and Hawaii geometry to position them closer
-  sf::st_geometry(states)[states$stusps == "AK"] <-
-    sf::st_geometry(states)[states$stusps == "AK"] * 0.75 + c(1e6, -4e6)
-  sf::st_geometry(states)[states$stusps == "HI"] <-
-    sf::st_geometry(states)[states$stusps == "HI"] * 1.5 + c(1e7, -2.8e6)
+  sf::st_geometry(states)[states[["stusps"]] == "AK"] <-
+    sf::st_geometry(states)[states[["stusps"]] == "AK"] * 0.75 + c(1e6, -4e6)
+  sf::st_geometry(states)[states[["stusps"]] == "HI"] <-
+    sf::st_geometry(states)[states[["stusps"]] == "HI"] * 1.5 + c(1e7, -2.8e6)
 
   # Compute state centroids
   state_centroids <- data.frame(
-    temp_state = states$stusps,
+    temp_state = states[["stusps"]],
     sf::st_coordinates(sf::st_centroid(states))
   )
   colnames(state_centroids)[1] <- state_column
@@ -152,14 +150,22 @@ us_map_scatterpie <- function(
     ) +
     scatterpie::geom_scatterpie(
       data = plot_df,
-      ggplot2::aes(x = .data$X, y = .data$Y, group = .data[[state_column]]),
+      ggplot2::aes(
+        x = .data[["X"]],
+        y = .data[["Y"]],
+        group = .data[[state_column]]
+      ),
       cols = category_cols,
       pie_scale = pie_scale,
       alpha = pie_alpha
     ) +
     ggplot2::coord_sf(crs = sf::st_crs(states)) +
     ggplot2::scale_fill_manual(
-      name = ifelse(is.null(legendlab), column, legendlab),
+      name = stringr::str_wrap(
+        ifelse(is.null(legendlab), column, legendlab),
+        width = 15
+      ),
+      labels = stringr::str_wrap(category_cols, width = 15),
       values = color_list
     ) +
     ggplot2::theme_void() +

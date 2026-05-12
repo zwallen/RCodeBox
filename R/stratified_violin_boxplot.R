@@ -46,8 +46,6 @@
 #' @return
 #' A `ggplot2` figure object. If save is `TRUE`, also exports the image to file.
 #'
-#' @import ggplot2
-#' @importFrom ggsignif geom_signif
 #' @importFrom stats t.test wilcox.test p.adjust
 #' @export
 #'
@@ -72,6 +70,9 @@ stratified_violin_boxplot <- function(
   }
   if (!requireNamespace("ggsignif", quietly = TRUE)) {
     stop("Package 'ggsignif' is required.")
+  }
+  if (!requireNamespace("stringr", quietly = TRUE)) {
+    stop("Package 'stringr' is required.")
   }
 
   # Perform a few data checks
@@ -142,9 +143,9 @@ stratified_violin_boxplot <- function(
           if (
             group1 != group2 &&
               !(paste(group1, group2) %in%
-                paste(plot_annot$Group1, plot_annot$Group2)) &&
+                paste(plot_annot[["Group1"]], plot_annot[["Group2"]])) &&
               !(paste(group1, group2) %in%
-                paste(plot_annot$Group2, plot_annot$Group1))
+                paste(plot_annot[["Group2"]], plot_annot[["Group1"]]))
           ) {
             res <- pair.test(
               df[[column]][df[[groups]] == group1],
@@ -164,8 +165,8 @@ stratified_violin_boxplot <- function(
 
       # Perform multiple testing correction if specified
       if (!is.null(multi_test_correct)) {
-        plot_annot$p <- p.adjust(
-          plot_annot$p,
+        plot_annot[["p"]] <- p.adjust(
+          plot_annot[["p"]],
           method = multi_test_correct
         )
       }
@@ -197,13 +198,13 @@ stratified_violin_boxplot <- function(
   # Make sure levels of grouping variable are the same as input
   if (!is.null(groups)) {
     if (!drop_all_cases) {
-      plot_df$group <- factor(
-        plot_df$group,
+      plot_df[["group"]] <- factor(
+        plot_df[["group"]],
         levels = c("All Cases", names(table(df[[groups]])))
       )
     } else {
-      plot_df$group <- factor(
-        plot_df$group,
+      plot_df[["group"]] <- factor(
+        plot_df[["group"]],
         levels = names(table(df[[groups]]))
       )
     }
@@ -232,11 +233,11 @@ stratified_violin_boxplot <- function(
   set.seed(1234)
   g <- ggplot2::ggplot(
     data.frame(group = group_vec, y = y_vec)[
-      !is.na(data.frame(group = group_vec, y = y_vec)$group),
+      !is.na(data.frame(group = group_vec, y = y_vec)[["group"]]),
     ],
     ggplot2::aes(
-      y = .data$y,
-      x = factor(.data$group, levels = levels(plot_df$group))
+      y = .data[["y"]],
+      x = factor(.data[["group"]], levels = levels(plot_df[["group"]]))
     )
   ) +
     ggplot2::geom_violin(na.rm = TRUE, color = "black", fill = "grey") +
@@ -252,9 +253,9 @@ stratified_violin_boxplot <- function(
       inherit.aes = FALSE,
       data = plot_df,
       ggplot2::aes(
-        ymin = .data$std_start,
-        ymax = .data$std_end,
-        x = .data$group
+        ymin = .data[["std_start"]],
+        ymax = .data[["std_end"]],
+        x = .data[["group"]]
       ),
       color = "red",
       width = 0.1,
@@ -264,9 +265,9 @@ stratified_violin_boxplot <- function(
       inherit.aes = FALSE,
       data = plot_df,
       ggplot2::aes(
-        label = .data$label,
-        y = .data$avg,
-        x = .data$group
+        label = .data[["label"]],
+        y = .data[["avg"]],
+        x = .data[["group"]]
       ),
       position = ggplot2::position_dodge(0.9),
       fill = "white",
@@ -276,11 +277,11 @@ stratified_violin_boxplot <- function(
     ggplot2::scale_x_discrete(
       labels = paste0(
         stringr::str_wrap(
-          sapply(levels(plot_df$group), function(x) x),
+          sapply(levels(plot_df[["group"]]), function(x) x),
           width = 15
         ),
         "\n(N=",
-        plot_df$n,
+        plot_df[["n"]],
         ")"
       )
     ) +
@@ -296,7 +297,7 @@ stratified_violin_boxplot <- function(
 
   # Add statistical testing annotations if requested
   if (!is.null(test) && nrow(plot_annot) > 0) {
-    plot_annot <- plot_annot[plot_annot$p < alpha, ]
+    plot_annot <- plot_annot[plot_annot[["p"]] < alpha, ]
     if (nrow(plot_annot) > 0) {
       y_position <- sapply(seq_len(nrow(plot_annot)), function(x) {
         ymax + (x * (ymax / 20))
@@ -306,10 +307,10 @@ stratified_violin_boxplot <- function(
           inherit.aes = FALSE,
           data = plot_annot,
           ggplot2::aes(
-            xmin = .data$Group1,
-            xmax = .data$Group2,
+            xmin = .data[["Group1"]],
+            xmax = .data[["Group2"]],
             y_position = y_position,
-            annotations = paste0("p=", formatC(.data$p, digits = 1))
+            annotations = paste0("p=", formatC(.data[["p"]], digits = 1))
           ),
           manual = TRUE,
           tip_length = 0

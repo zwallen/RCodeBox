@@ -46,9 +46,7 @@
 #' the variable label, categories, total summary, stratified group summaries, and
 #' regression results (Coefficient and P-value).
 #'
-#' @importFrom logistf logistf
 #' @importFrom stats lm confint pnorm sd na.omit
-#' @importFrom tibble add_column
 #' @export
 #'
 stratified_stat_table <- function(
@@ -342,7 +340,7 @@ stratified_stat_table <- function(
 
   # If results only include numeric variables (i.e., no categories), then
   # remove the categories column
-  if (sum(results$Categories == "-") == nrow(results)) {
+  if (sum(results[["Categories"]] == "-") == nrow(results)) {
     results <- results[, -2]
   }
 

@@ -52,10 +52,7 @@
 #' @return
 #' A `ggplot2` figure object. If save is `TRUE`, also exports the image to file.
 #'
-#' @import ggplot2
-#' @importFrom ggsignif geom_signif
 #' @importFrom stats fisher.test p.adjust
-#' @importFrom grid unit
 #' @export
 #'
 stratified_barplot <- function(
@@ -81,6 +78,12 @@ stratified_barplot <- function(
   }
   if (!requireNamespace("ggsignif", quietly = TRUE)) {
     stop("Package 'ggsignif' is required.")
+  }
+  if (!requireNamespace("grid", quietly = TRUE)) {
+    stop("Package 'grid' is required.")
+  }
+  if (!requireNamespace("stringr", quietly = TRUE)) {
+    stop("Package 'stringr' is required.")
   }
 
   # Perform a few data checks
@@ -127,7 +130,7 @@ stratified_barplot <- function(
     )
 
     # Remove levels with frequency of 0
-    plot_df <- plot_df[plot_df$perc > 0, ]
+    plot_df <- plot_df[plot_df[["perc"]] > 0, ]
 
     # Perform pairwise statistical testing
     if (test) {
@@ -137,9 +140,9 @@ stratified_barplot <- function(
           if (
             group1 != group2 &&
               !(paste(group1, group2) %in%
-                paste(plot_annot$Group1, plot_annot$Group2)) &&
+                paste(plot_annot[["Group1"]], plot_annot[["Group2"]])) &&
               !(paste(group1, group2) %in%
-                paste(plot_annot$Group2, plot_annot$Group1))
+                paste(plot_annot[["Group2"]], plot_annot[["Group1"]]))
           ) {
             res <- tryCatch(
               fisher.test(n[, c(group1, group2)]),
@@ -167,8 +170,8 @@ stratified_barplot <- function(
 
       # Perform multiple testing correction if specified
       if (!is.null(multi_test_correct)) {
-        plot_annot$p <- p.adjust(
-          plot_annot$p,
+        plot_annot[["p"]] <- p.adjust(
+          plot_annot[["p"]],
           method = multi_test_correct
         )
       }
@@ -198,19 +201,19 @@ stratified_barplot <- function(
   }
 
   # Make sure levels of grouping variable and column are the same as input
-  plot_df$Var1 <- factor(
-    plot_df$Var1,
+  plot_df[["Var1"]] <- factor(
+    plot_df[["Var1"]],
     levels = names(table(df[[column]]))
   )
   if (!is.null(groups)) {
     if (!drop_all_cases) {
-      plot_df$Var2 <- factor(
-        plot_df$Var2,
+      plot_df[["Var2"]] <- factor(
+        plot_df[["Var2"]],
         levels = c("All Cases", names(table(df[[groups]])))
       )
     } else {
-      plot_df$Var2 <- factor(
-        plot_df$Var2,
+      plot_df[["Var2"]] <- factor(
+        plot_df[["Var2"]],
         levels = names(table(df[[groups]]))
       )
     }
@@ -218,27 +221,27 @@ stratified_barplot <- function(
 
   # Create color vector for plotting if one was not provided
   if (is.null(color_list)) {
-    color_list <- generate_color_palette(length(levels(plot_df$Var1)))
+    color_list <- generate_color_palette(length(levels(plot_df[["Var1"]])))
   }
 
   # Drop any specified levels
   if (!is.null(drop_level) && !test) {
-    plot_df <- plot_df[!(plot_df$Var1 %in% drop_level), ]
-    plot_df$Var1 <- droplevels(plot_df$Var1)
+    plot_df <- plot_df[!(plot_df[["Var1"]] %in% drop_level), ]
+    plot_df[["Var1"]] <- droplevels(plot_df[["Var1"]])
   }
 
   # Perform plotting
   ymax <- max(
-    plot_df$perc + (nchar(plot_df$label) * 1.5),
+    plot_df[["perc"]] + (nchar(plot_df[["label"]]) * 1.5),
     na.rm = TRUE
   )
   x_variable <- ifelse(!is.null(groups), "Var2", "Var1")
   g <- ggplot2::ggplot(
     plot_df,
     ggplot2::aes(
-      y = .data$perc,
+      y = .data[["perc"]],
       x = .data[[x_variable]],
-      fill = .data$Var1
+      fill = .data[["Var1"]]
     )
   ) +
     ggplot2::geom_col(
@@ -247,7 +250,7 @@ stratified_barplot <- function(
       color = "black"
     ) +
     ggplot2::geom_label(
-      ggplot2::aes(label = .data$label, group = .data$Var1),
+      ggplot2::aes(label = .data[["label"]], group = .data[["Var1"]]),
       position = ggplot2::position_dodge(0.9),
       hjust = -0.05,
       angle = 90,
@@ -268,14 +271,14 @@ stratified_barplot <- function(
         ),
         "\n(N=",
         sapply(levels(plot_df[[x_variable]]), function(x) {
-          sum(plot_df$Freq[plot_df[[x_variable]] == x])
+          sum(plot_df[["Freq"]][plot_df[[x_variable]] == x])
         }),
         ")"
       )
     ) +
     ggplot2::scale_fill_manual(
       labels = stringr::str_wrap(
-        sapply(levels(plot_df$Var1), function(x) x),
+        sapply(levels(plot_df[["Var1"]]), function(x) x),
         width = 20
       ),
       values = color_list
@@ -298,7 +301,7 @@ stratified_barplot <- function(
     g <- g +
       ggplot2::scale_x_discrete(
         labels = stringr::str_wrap(
-          sapply(levels(plot_df$Var1), function(x) x),
+          sapply(levels(plot_df[["Var1"]]), function(x) x),
           width = 15
         )
       ) +
@@ -307,7 +310,7 @@ stratified_barplot <- function(
 
   # Add statistical testing annotations if requested
   if (!is.null(groups) && test && nrow(plot_annot) > 0) {
-    plot_annot <- plot_annot[plot_annot$p < alpha, ]
+    plot_annot <- plot_annot[plot_annot[["p"]] < alpha, ]
     if (nrow(plot_annot) > 0) {
       y_position <- sapply(seq_len(nrow(plot_annot)), function(x) {
         ymax + (x * (ymax / 10))
@@ -317,16 +320,16 @@ stratified_barplot <- function(
           inherit.aes = FALSE,
           data = plot_annot,
           ggplot2::aes(
-            xmin = .data$Group1,
-            xmax = .data$Group2,
+            xmin = .data[["Group1"]],
+            xmax = .data[["Group2"]],
             y_position = y_position,
-            annotations = paste0("p=", formatC(.data$p, digits = 1))
+            annotations = paste0("p=", formatC(.data[["p"]], digits = 1))
           ),
           manual = TRUE,
           tip_length = 0
         ) +
         ggplot2::coord_cartesian(ylim = c(0, max(y_position)), clip = "off")
-      g$layers <- g$layers[c("geom_col", "geom_signif", "geom_label")]
+      g[["layers"]] <- g[["layers"]][c("geom_col", "geom_signif", "geom_label")]
     }
   }
 

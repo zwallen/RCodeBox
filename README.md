@@ -48,6 +48,8 @@ Version 0.2.0
     - `us_map_scatterpie`: function for plotting scatter pie charts overlaid on the US map (including AK and HI)
     - `generate_color_palette`: function for creating color palettes with automatically handling of variables with really large Ns (used within other plotting functions)
 * Replaced portions of existing functions with `generate_color_palette`
+* Put most packages in `Suggests` (was getting warning message about too many imports)
+* General tweaks to overall code
 
 Version 0.1.9
 * Fixed handling of data when `groups` is `NULL` in the `stratified_stat_table` function

@@ -58,8 +58,6 @@
 #' @return
 #' A `ggplot2` figure object. If save is `TRUE`, also exports the image to file.
 #'
-#' @import ggplot2
-#' @importFrom grid unit
 #' @export
 #'
 composition_barplot <- function(
@@ -85,6 +83,15 @@ composition_barplot <- function(
 ) {
   if (!requireNamespace("ggplot2", quietly = TRUE)) {
     stop("Package 'ggplot2' is required.")
+  }
+  if (!requireNamespace("grid", quietly = TRUE)) {
+    stop("Package 'grid' is required.")
+  }
+  if (!requireNamespace("scales", quietly = TRUE)) {
+    stop("Package 'scales' is required.")
+  }
+  if (!requireNamespace("stringr", quietly = TRUE)) {
+    stop("Package 'stringr' is required.")
   }
 
   # Perform a few data checks
@@ -151,6 +158,9 @@ composition_barplot <- function(
   ) +
     ggplot2::geom_bar(position = "fill") +
     ggplot2::scale_y_continuous(labels = scales::percent, expand = c(0, 0)) +
+    ggplot2::scale_x_discrete(
+      labels = stringr::str_wrap(levels(plot_df[[groups]]), width = 15)
+    ) +
     ggplot2::scale_fill_manual(
       labels = stringr::str_wrap(
         sapply(levels(plot_df[[column]]), function(x) x),
@@ -205,7 +215,7 @@ composition_barplot <- function(
         position = ggplot2::position_fill(vjust = 0.5),
         color = "black"
       )
-    g$layers[[1]]$aes_params$colour <- "black"
+    g[["layers"]][[1]][["aes_params"]][["colour"]] <- "black"
   }
 
   # Add bar groupings if specified
@@ -268,7 +278,14 @@ composition_barplot <- function(
       ggplot2::coord_flip() +
       ggplot2::theme(panel.spacing = grid::unit(1, "lines"))
     if (!sort_groups) {
-      g <- g + ggplot2::scale_x_discrete(limits = rev)
+      g <- g +
+        ggplot2::scale_x_discrete(
+          labels = rev(stringr::str_wrap(
+            levels(plot_df[[groups]]),
+            width = 15
+          )),
+          limits = rev
+        )
     }
   }
 

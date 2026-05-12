@@ -35,7 +35,6 @@
 #' A `kableExtra` HTML table object (class typically including `knitr_kable`)
 #' that can be printed in HTML contexts (R Markdown/Quarto, Shiny).
 #'
-#' @importFrom kableExtra kbl kable_styling column_spec row_spec
 #' @export
 #'
 kable_html_table <- function(

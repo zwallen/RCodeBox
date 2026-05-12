@@ -30,7 +30,7 @@ generate_color_palette <- function(n, palette = "Set3") {
   if (is.null(palette_info)) {
     stop(paste0("ERROR: palette '", palette, "' not found in RColorBrewer"))
   }
-  max_colors <- palette_info$maxcolors
+  max_colors <- palette_info[["maxcolors"]]
 
   # Generate color palette
   if (n <= max_colors) {

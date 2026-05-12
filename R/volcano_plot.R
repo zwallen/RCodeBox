@@ -59,9 +59,6 @@
 #' @return
 #' A `ggplot2` figure object. If save is `TRUE`, also exports the image to file.
 #'
-#' @import ggplot2
-#' @importFrom ggrepel geom_label_repel
-#' @importFrom grid unit
 #' @export
 #'
 volcano_plot <- function(
@@ -87,6 +84,12 @@ volcano_plot <- function(
   }
   if (!requireNamespace("ggrepel", quietly = TRUE)) {
     stop("Package 'ggrepel' is required.")
+  }
+  if (!requireNamespace("grid", quietly = TRUE)) {
+    stop("Package 'grid' is required.")
+  }
+  if (!requireNamespace("stringr", quietly = TRUE)) {
+    stop("Package 'stringr' is required.")
   }
 
   # Perform a few data checks
@@ -124,7 +127,7 @@ volcano_plot <- function(
 
   # Add column for designating significant results
   coef_mid <- ifelse(min(df[[coef]], na.rm = TRUE) < 0, 0, 1)
-  df$Result <- ifelse(
+  df[["Result"]] <- ifelse(
     df[[coef]] < coef_mid & df[[pvalue]] < alpha,
     ifelse(
       !is.null(first_group_name),
@@ -189,19 +192,19 @@ volcano_plot <- function(
 
   # Add label column for labeling significant results and mask all but the
   # top N significant results
-  df$label <- ifelse(df[[pvalue]] < alpha, df[[variable]], NA)
+  df[["label"]] <- ifelse(df[[pvalue]] < alpha, df[[variable]], NA)
   df <- df[order(df[[pvalue]]), ]
-  df$label[df[[coef]] < coef_mid][-c(1:top_n)] <- NA
-  df$label[df[[coef]] > coef_mid][-c(1:top_n)] <- NA
+  df[["label"]][df[[coef]] < coef_mid][-c(1:top_n)] <- NA
+  df[["label"]][df[[coef]] > coef_mid][-c(1:top_n)] <- NA
 
   # Create color vector for plotting if one was not provided
   if (is.null(color_list)) {
     color_list <- c("blue", "red", "grey")
   }
   names(color_list) <- c(
-    unique(df$Result[df[[coef]] < coef_mid & df[[pvalue]] < alpha]),
-    unique(df$Result[df[[coef]] > coef_mid & df[[pvalue]] < alpha]),
-    unique(df$Result[df[[pvalue]] >= alpha])
+    unique(df[["Result"]][df[[coef]] < coef_mid & df[[pvalue]] < alpha]),
+    unique(df[["Result"]][df[[coef]] > coef_mid & df[[pvalue]] < alpha]),
+    unique(df[["Result"]][df[[pvalue]] >= alpha])
   )
 
   # Transform p-value if specified
@@ -216,7 +219,7 @@ volcano_plot <- function(
     ggplot2::aes(x = .data[[coef]], y = .data[[pvalue]])
   ) +
     ggplot2::geom_point(
-      ggplot2::aes(color = .data$Result),
+      ggplot2::aes(color = .data[["Result"]]),
       size = 2,
       alpha = 0.5
     ) +
@@ -226,7 +229,7 @@ volcano_plot <- function(
       linetype = "dashed"
     ) +
     ggrepel::geom_label_repel(
-      ggplot2::aes(label = .data$label),
+      ggplot2::aes(label = .data[["label"]]),
       force_pull = 0,
       min.segment.length = 0.1,
       box.padding = 0.2,
@@ -236,7 +239,7 @@ volcano_plot <- function(
     ) +
     ggplot2::scale_color_manual(
       labels = stringr::str_wrap(
-        sapply(unique(df$Result), function(x) x),
+        sapply(unique(df[["Result"]]), function(x) x),
         width = 20
       ),
       values = color_list

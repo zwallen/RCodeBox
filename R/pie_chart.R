@@ -36,8 +36,6 @@
 #' @return
 #' A `ggplot2` figure object. If save is `TRUE`, also exports the image to file.
 #'
-#' @import ggplot2
-#' @importFrom ggrepel geom_label_repel
 #' @importFrom stats aggregate as.formula
 #' @export
 #'
@@ -76,15 +74,15 @@ pie_chart <- function(
   plot_df <- aggregate(formula_str, data = df, FUN = length)
   colnames(plot_df)[ncol(plot_df)] <- "count"
 
-  plot_df$freq <- plot_df$count / sum(plot_df$count)
-  plot_df$label <- paste0(
-    plot_df$count,
+  plot_df[["freq"]] <- plot_df[["count"]] / sum(plot_df[["count"]])
+  plot_df[["label"]] <- paste0(
+    plot_df[["count"]],
     " (",
-    round(plot_df$freq * 100, 1),
+    round(plot_df[["freq"]] * 100, 1),
     "%)"
   )
-  plot_df$label_y <- sum(plot_df$count) -
-    (cumsum(plot_df$count) - plot_df$count / 2)
+  plot_df[["label_y"]] <- sum(plot_df[["count"]]) -
+    (cumsum(plot_df[["count"]]) - plot_df[["count"]] / 2)
 
   # Create color vector for plotting if one was not provided
   if (is.null(color_list)) {
@@ -94,27 +92,34 @@ pie_chart <- function(
   # Perform plotting
   g <- ggplot2::ggplot(
     plot_df,
-    ggplot2::aes(x = 1, y = .data$count, fill = .data[[column]])
+    ggplot2::aes(x = 1, y = .data[["count"]], fill = .data[[column]])
   ) +
     ggplot2::geom_col(width = 1, color = "black") +
     ggplot2::coord_polar(theta = "y") +
     ggplot2::scale_fill_manual(
-      name = ifelse(is.null(legendlab), column, legendlab),
+      name = stringr::str_wrap(
+        ifelse(is.null(legendlab), column, legendlab),
+        width = 15
+      ),
+      labels = stringr::str_wrap(levels(plot_df[[column]]), width = 15),
       values = color_list
     ) +
     ggplot2::theme_void() +
     ggplot2::theme(
-      legend.position = c(0.05, 0.5),
-      plot.margin = ggplot2::margin(l = 30)
+      legend.position = c(0, 0.5),
+      legend.key.spacing.y = grid::unit(0.2, "lines"),
+      plot.margin = ggplot2::margin(
+        l = nchar(ifelse(is.null(legendlab), column, legendlab)) * 5
+      )
     )
 
   # Add labels for slices >= defined frequency threshold
-  if (any(plot_df$freq >= repel_label_threshold)) {
+  if (any(plot_df[["freq"]] >= repel_label_threshold)) {
     g <- g +
       ggplot2::geom_label(
-        data = plot_df[plot_df$freq >= repel_label_threshold, ],
+        data = plot_df[plot_df[["freq"]] >= repel_label_threshold, ],
         inherit.aes = FALSE,
-        ggplot2::aes(x = 1, y = .data$label_y, label = .data$label),
+        ggplot2::aes(x = 1, y = .data[["label_y"]], label = .data[["label"]]),
         fill = "white",
         size = 5,
         alpha = 0.8
@@ -122,12 +127,12 @@ pie_chart <- function(
   }
 
   # Add repelled labels for slices < defined threshold
-  if (any(plot_df$freq < repel_label_threshold)) {
+  if (any(plot_df[["freq"]] < repel_label_threshold)) {
     g <- g +
       ggrepel::geom_label_repel(
-        data = plot_df[plot_df$freq < repel_label_threshold, ],
+        data = plot_df[plot_df[["freq"]] < repel_label_threshold, ],
         inherit.aes = FALSE,
-        ggplot2::aes(x = 1.5, y = .data$label_y, label = .data$label),
+        ggplot2::aes(x = 1.5, y = .data[["label_y"]], label = .data[["label"]]),
         min.segment.length = 0,
         nudge_x = 0.2,
         size = 5,

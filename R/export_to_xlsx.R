@@ -36,7 +36,6 @@
 #' Invisibly returns `TRUE` on successful write (value from `openxlsx::saveWorkbook()`),
 #' and has the side effect of creating/overwriting the Excel file at `out_path`.
 #'
-#' @importFrom openxlsx loadWorkbook createWorkbook removeWorksheet addWorksheet writeData createStyle addStyle setColWidths saveWorkbook
 #' @export
 #'
 export_to_xlsx <- function(
@@ -64,7 +63,7 @@ export_to_xlsx <- function(
   }
 
   # Add worksheet or rewrite if already present
-  if (sheet %in% wb$sheet_names) {
+  if (sheet %in% wb[["sheet_names"]]) {
     openxlsx::removeWorksheet(wb, sheet)
     openxlsx::addWorksheet(wb, sheet)
   } else {

@@ -17,10 +17,6 @@
 #' @note
 #' The `seqlevel` of the VCF will be converted to `UCSC` in the mapping process.
 #'
-#' @importFrom rtracklayer import.chain liftOver
-#' @importFrom S4Vectors elementNROWS
-#' @importFrom GenomeInfoDb seqlevelsStyle
-#' @importFrom SummarizedExperiment rowRanges
 #' @export
 #'
 liftover_vcf <- function(vcf, chain_path) {
