@@ -334,7 +334,9 @@ stratified_stat_table <- function(
   if (!is.null(groups)) {
     if (length(unique(na.omit(df[[groups]]))) == 2) {
       idx <- grep("Coef|P$", colnames(results))
-      results <- results[, -idx[1:(length(idx) / length(unique(df[[groups]])))]]
+      results <- results[,
+        -idx[1:(length(idx) / length(unique(na.omit(df[[groups]]))))]
+      ]
     }
   }
 
