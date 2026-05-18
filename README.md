@@ -41,6 +41,9 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Changelog
 
+Version 0.2.1
+* Created function `sample_size_disease_detect` for performing sample size calculation for clinical studies involving assays for disease detection
+
 Version 0.2.0
 * Started using Claude Code to assist in package maintaining,
 * Added following functions
