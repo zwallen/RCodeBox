@@ -96,6 +96,7 @@ pie_chart <- function(
   ) +
     ggplot2::geom_col(width = 1, color = "black") +
     ggplot2::coord_polar(theta = "y") +
+    ggplot2::scale_y_continuous(expand = c(0, 0)) +
     ggplot2::scale_fill_manual(
       name = stringr::str_wrap(
         ifelse(is.null(legendlab), column, legendlab),
@@ -108,9 +109,7 @@ pie_chart <- function(
     ggplot2::theme(
       legend.position = c(0, 0.5),
       legend.key.spacing.y = grid::unit(0.2, "lines"),
-      plot.margin = ggplot2::margin(
-        l = nchar(ifelse(is.null(legendlab), column, legendlab)) * 5
-      )
+      plot.margin = ggplot2::margin(l = 75, unit = "pt")
     )
 
   # Add labels for slices >= defined frequency threshold
