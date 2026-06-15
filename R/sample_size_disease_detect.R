@@ -28,6 +28,10 @@
 #' (default: 0.1 or \eqn{\pm 10\%}).
 #' @param confidence_interval
 #' Confidence level for sensitivity/specificity estimation (default: 0.95 or 95%).
+#' @param optimize_sample_size
+#' Logical; if TRUE, the function will iteratively increase the sample size until
+#' the estimated power for achieving the desired precision for both sensitivity and
+#' specificity meets or exceeds `target_power` (default: TRUE).
 #' @param target_power
 #' Desired probability that the simulated confidence interval half-widths for
 #' sensitivity and specificity will be less than or equal to `precision`
@@ -79,6 +83,7 @@ sample_size_disease_detect <- function(
   specificity = 0.85,
   precision = 0.1,
   confidence_interval = 0.95,
+  optimize_sample_size = TRUE,
   target_power = 0.9,
   n_sim = 1000,
   step_size = 10,
@@ -173,38 +178,44 @@ sample_size_disease_detect <- function(
   }
 
   # Optimize sample size based on target power
-  iter <- 0
-  repeat {
-    # Count iteration
-    iter <- iter + 1
-    if (iter > max_iter) {
-      stop("Max iterations reached without convergence")
+  if (optimize_sample_size) {
+    iter <- 0
+    repeat {
+      # Count iteration
+      iter <- iter + 1
+      if (iter > max_iter) {
+        stop("Max iterations reached without convergence")
+      }
+
+      # Perform simulations
+      sim_res <- replicate(n_sim, simulate_once(n_current))
+      sim_res <- t(sim_res)
+
+      # Calculate power for sensitivity and specificity
+      sens_power <- mean(sim_res[, "sens_hw"] <= precision, na.rm = TRUE)
+      spec_power <- mean(sim_res[, "spec_hw"] <= precision, na.rm = TRUE)
+
+      # Report results
+      if (verbose) {
+        cat(sprintf(
+          "N=%d | Sens power=%.3f | Spec power=%.3f\n",
+          n_current,
+          sens_power,
+          spec_power
+        ))
+      }
+
+      # Stop optimization when target power is met
+      if (sens_power >= target_power && spec_power >= target_power) {
+        break
+      }
+
+      n_current <- n_current + step_size
     }
-
-    # Perform simulations
-    sim_res <- replicate(n_sim, simulate_once(n_current))
-    sim_res <- t(sim_res)
-
-    # Calculate power for sensitivity and specificity
-    sens_power <- mean(sim_res[, "sens_hw"] <= precision, na.rm = TRUE)
-    spec_power <- mean(sim_res[, "spec_hw"] <= precision, na.rm = TRUE)
-
-    # Report results
-    if (verbose) {
-      cat(sprintf(
-        "N=%d | Sens power=%.3f | Spec power=%.3f\n",
-        n_current,
-        sens_power,
-        spec_power
-      ))
-    }
-
-    # Stop optimization when target power is met
-    if (sens_power >= target_power && spec_power >= target_power) {
-      break
-    }
-
-    n_current <- n_current + step_size
+  } else {
+    sens_power <- NA
+    spec_power <- NA
+    iter <- 0
   }
 
   # Final subgroup breakdown

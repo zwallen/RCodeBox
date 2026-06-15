@@ -13,6 +13,7 @@ sample_size_disease_detect(
   specificity = 0.85,
   precision = 0.1,
   confidence_interval = 0.95,
+  optimize_sample_size = TRUE,
   target_power = 0.9,
   n_sim = 1000,
   step_size = 10,
@@ -38,6 +39,10 @@ fail testing) (default: 0).}
 (default: 0.1 or \eqn{\pm 10\%}).}
 
 \item{confidence_interval}{Confidence level for sensitivity/specificity estimation (default: 0.95 or 95\%).}
+
+\item{optimize_sample_size}{Logical; if TRUE, the function will iteratively increase the sample size until
+the estimated power for achieving the desired precision for both sensitivity and
+specificity meets or exceeds \code{target_power} (default: TRUE).}
 
 \item{target_power}{Desired probability that the simulated confidence interval half-widths for
 sensitivity and specificity will be less than or equal to \code{precision}
